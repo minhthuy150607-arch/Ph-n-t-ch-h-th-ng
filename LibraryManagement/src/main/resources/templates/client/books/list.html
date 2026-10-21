@@ -10,78 +10,119 @@
 <body>
 <div layout:fragment="content" class="books-list-wrapper">
 
-    <!-- Banner Tra cứu Header -->
+    <!-- ===== 1. BANNER TRA CỨU & TÌM KIẾM HERO ===== -->
     <div class="books-list-banner">
         <div class="books-banner-glow-1"></div>
         <div class="books-banner-glow-2"></div>
 
-        <div style="position: relative; z-index: 2; max-width: 720px; margin: 0 auto;">
-            <span class="hero-badge" style="margin-bottom: 16px;">
-                <i class="fas fa-book-reader"></i> Kho Tài Liệu Số Chuẩn
-            </span>
+        <div style="position: relative; z-index: 2; max-width: 740px; margin: 0 auto;">
+            <div class="hero-badge" style="margin-bottom: 16px;">
+                <i class="fas fa-sparkles"></i> Kho Tài Liệu Số Chuẩn
+            </div>
             <h1 class="books-list-title">Tra Cứu Kho Sách Thư Viện</h1>
             <p class="books-list-desc">Hàng ngàn đầu sách về Công nghệ, Kinh tế, Khoa học, Kỹ năng và Văn học</p>
 
-            <!-- Form tìm kiếm kết hợp Quét QR / Barcode -->
-            <form th:action="@{/client/books}" method="get" class="hero-search-box" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-search"></i>
-                <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập mã sách (BS0001), tên sách, tác giả...">
-                <button type="button" class="btn btn-outline" onclick="openClientQrLookupModal()" style="border-radius: var(--border-radius-full); background: #ffffff; color: #2563eb; font-weight: 600; white-space: nowrap; border: 1px solid #bfdbfe;" title="Quét mã QR hoặc Barcode">
+            <!-- Form tìm kiếm thông minh kết hợp Quét QR / Barcode -->
+            <form th:action="@{/client/books}" method="get" class="hero-search-box" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <input type="hidden" name="category" th:if="${selectedCategory != null and !selectedCategory.isEmpty()}" th:value="${selectedCategory}">
+                <i class="fas fa-search" style="color: #94a3b8; font-size: 1.1rem; margin-left: 6px;"></i>
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập mã sách (BS0001), tên sách, tác giả..." autocomplete="off">
+                <button type="button" class="btn btn-outline qr-scan-btn" onclick="openClientQrLookupModal()" title="Quét mã QR hoặc Barcode">
                     <i class="fas fa-camera"></i> <span>Quét QR</span>
                 </button>
-                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                <button type="submit" class="btn btn-primary search-submit-btn">
                     <i class="fas fa-search"></i> <span>Tìm kiếm</span>
                 </button>
             </form>
+
+            <!-- Gợi ý từ khóa tìm kiếm nhanh -->
+            <div class="search-suggest-tags">
+                <span class="suggest-label"><i class="fas fa-lightbulb"></i> Gợi ý:</span>
+                <a th:href="@{/client/books(keyword='Clean Code')}" class="suggest-tag-chip">Clean Code</a>
+                <a th:href="@{/client/books(keyword='Java')}" class="suggest-tag-chip">Java</a>
+                <a th:href="@{/client/books(keyword='AI')}" class="suggest-tag-chip">AI</a>
+                <a th:href="@{/client/books(keyword='Đắc nhân tâm')}" class="suggest-tag-chip">Đắc nhân tâm</a>
+                <a th:href="@{/client/books(keyword='Kinh tế')}" class="suggest-tag-chip">Kinh tế</a>
+                <a th:href="@{/client/books(keyword='Tâm lý')}" class="suggest-tag-chip">Tâm lý</a>
+            </div>
         </div>
     </div>
 
-    <!-- Bộ lọc thể loại (Filter Pills) -->
-    <div class="filter-pills-bar">
-        <a th:href="@{/client/books}" class="filter-pill"
-           th:classappend="${selectedCategory == null} ? 'active' : ''">
-            <i class="fas fa-th-large" style="margin-right: 4px;"></i> Tất cả
-        </a>
-        <a th:each="cat : ${categories}" th:href="@{/client/books(category=${cat})}"
-           class="filter-pill"
-           th:classappend="${selectedCategory == cat} ? 'active' : ''"
-           th:text="${cat}">Thể loại</a>
-    </div>
-
-    <!-- Thông báo kết quả tìm kiếm -->
-    <div class="search-result-header">
-        <div style="font-size: 0.95rem; color: var(--text-secondary);">
-            <span th:if="${keyword != null and !keyword.isEmpty()}">
-                Kết quả cho: <strong style="color: var(--text-primary);" th:text="${keyword}"></strong> |
-            </span>
-            <span th:if="${selectedCategory != null}">
-                Thể loại: <strong style="color: var(--text-primary);" th:text="${selectedCategory}"></strong> |
-            </span>
-            Tìm thấy <strong style="color: var(--color-accent);" th:text="${books != null ? #lists.size(books) : 0}">0</strong> đầu sách
+    <!-- ===== 2. BỘ LỌC THỂ LOẠI (CATEGORY FILTER PILLS) ===== -->
+    <div class="category-filter-section">
+        <div class="category-filter-header">
+            <div class="category-filter-title">
+                <i class="fas fa-layer-group text-primary"></i>
+                <span>Phân loại danh mục</span>
+            </div>
+            <div style="font-size: 0.85rem; color: #64748b;">
+                Bấm vào thể loại để lọc nhanh
+            </div>
         </div>
-        <div th:if="${keyword != null or selectedCategory != null}">
-            <a th:href="@{/client/books}" class="btn btn-sm btn-outline" style="border-radius: var(--border-radius-full);">
-                <i class="fas fa-times"></i> Xóa bộ lọc
+
+        <div class="filter-pills-bar">
+            <!-- Nút Tất cả -->
+            <a th:href="${keyword != null and !keyword.isEmpty()} ? @{/client/books(keyword=${keyword})} : @{/client/books}"
+               class="filter-pill"
+               th:classappend="${selectedCategory == null or selectedCategory.isEmpty()} ? 'active' : ''">
+                <i class="fas fa-shapes"></i>
+                <span>Tất cả</span>
+            </a>
+
+            <!-- Danh sách các thể loại -->
+            <a th:each="cat : ${categories}"
+               th:href="${keyword != null and !keyword.isEmpty()} ? @{/client/books(keyword=${keyword}, category=${cat})} : @{/client/books(category=${cat})}"
+               class="filter-pill"
+               th:classappend="${selectedCategory == cat} ? 'active' : ''">
+                <i th:class="${cat.contains('Công nghệ') or cat.contains('Tin') or cat.contains('Lập trình')} ? 'fas fa-laptop-code' : (${cat.contains('Khoa học') or cat.contains('Tự nhiên')} ? 'fas fa-atom' : (${cat.contains('Kinh tế') or cat.contains('Quản trị')} ? 'fas fa-chart-line' : (${cat.contains('Kỹ năng')} ? 'fas fa-heart' : (${cat.contains('Văn học')} ? 'fas fa-feather-alt' : (${cat.contains('Tâm lý')} ? 'fas fa-brain' : 'fas fa-book')))))"></i>
+                <span th:text="${cat}">Thể loại</span>
             </a>
         </div>
     </div>
-        <div style="font-size: 0.95rem; color: var(--text-secondary);">
-            <span th:if="${keyword != null and !keyword.isEmpty()}">
-                Kết quả cho: <strong style="color: var(--text-primary);" th:text="${keyword}"></strong> |
-            </span>
-            <span th:if="${selectedCategory != null}">
-                Thể loại: <strong style="color: var(--text-primary);" th:text="${selectedCategory}"></strong> |
-            </span>
-            Tìm thấy <strong style="color: var(--color-accent);" th:text="${books != null ? #lists.size(books) : 0}">0</strong> đầu sách
+
+    <!-- ===== 3. THANH TRẠNG THÁI KẾT QUẢ & BỘ LỌC ĐANG CHỌN ===== -->
+    <div class="search-toolbar-card">
+        <div class="search-toolbar-left">
+            <!-- Số lượng kết quả -->
+            <div class="result-count-box">
+                <i class="fas fa-book-open" style="color: #6366f1;"></i>
+                <span>Tìm thấy <strong class="result-count-number" th:text="${books != null ? #lists.size(books) : 0}">0</strong> đầu sách</span>
+            </div>
+
+            <!-- Các chip bộ lọc đang áp dụng -->
+            <div class="active-filter-chips" th:if="${(keyword != null and !keyword.isEmpty()) or (selectedCategory != null and !selectedCategory.isEmpty())}">
+                <!-- Chip từ khóa -->
+                <div th:if="${keyword != null and !keyword.isEmpty()}" class="filter-chip-item">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <span>Từ khóa: <strong th:text="${keyword}"></strong></span>
+                    <a th:href="${selectedCategory != null and !selectedCategory.isEmpty()} ? @{/client/books(category=${selectedCategory})} : @{/client/books}"
+                       class="chip-remove-btn" title="Bỏ lọc từ khóa này">
+                        &times;
+                    </a>
+                </div>
+
+                <!-- Chip thể loại -->
+                <div th:if="${selectedCategory != null and !selectedCategory.isEmpty()}" class="filter-chip-item">
+                    <i class="fas fa-tag"></i>
+                    <span>Thể loại: <strong th:text="${selectedCategory}"></strong></span>
+                    <a th:href="${keyword != null and !keyword.isEmpty()} ? @{/client/books(keyword=${keyword})} : @{/client/books}"
+                       class="chip-remove-btn" title="Bỏ lọc thể loại này">
+                        &times;
+                    </a>
+                </div>
+            </div>
         </div>
-        <div th:if="${keyword != null or selectedCategory != null}">
-            <a th:href="@{/client/books}" class="btn btn-sm btn-outline" style="border-radius: var(--border-radius-full);">
-                <i class="fas fa-times"></i> Xóa bộ lọc
+
+        <!-- Nút đặt lại tất cả bộ lọc -->
+        <div class="search-toolbar-right" th:if="${(keyword != null and !keyword.isEmpty()) or (selectedCategory != null and !selectedCategory.isEmpty())}">
+            <a th:href="@{/client/books}" class="reset-filter-btn">
+                <i class="fas fa-rotate-left"></i>
+                <span>Xóa tất cả bộ lọc</span>
             </a>
         </div>
     </div>
 
-    <!-- Grid danh sách sách -->
+    <!-- ===== 4. LƯỚI DANH SÁCH SÁCH (BOOK GRID) ===== -->
     <div class="book-grid" th:if="${books != null and !#lists.isEmpty(books)}">
         <div th:each="book : ${books}" class="book-card">
             <!-- Bìa sách -->
@@ -107,10 +148,10 @@
                     <!-- Tình trạng sách -->
                     <div class="book-card-meta">
                         <div class="status-pill">
-                            <span th:if="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #059669;">
+                            <span th:if="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #059669; font-weight: 600;">
                                 <span class="status-dot available"></span> Còn <strong th:text="${book.availableCopiesCount}">3</strong> bản
                             </span>
-                            <span th:unless="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #dc2626;">
+                            <span th:unless="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #dc2626; font-weight: 600;">
                                 <span class="status-dot unavailable"></span> Tạm hết
                             </span>
                         </div>
@@ -145,16 +186,300 @@
         </div>
     </div>
 
-    <!-- Empty State -->
-    <div th:if="${#lists.isEmpty(books)}" class="empty-state" style="background: white; border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); padding: 60px 24px;">
-        <i class="fas fa-search"></i>
-        <h3>Không tìm thấy cuốn sách phù hợp</h3>
-        <p class="empty-hint" style="max-width: 450px; margin: 8px auto 20px;">Vui lòng thử tìm kiếm với từ khóa khác, tên tác giả hoặc chọn danh mục thể loại khác.</p>
-        <a th:href="@{/client/books}" class="btn btn-primary">
-            <i class="fas fa-redo"></i> Xem tất cả kho sách
-        </a>
+    <!-- ===== 5. TRẠNG THÁI KHÔNG TÌM THẤY SÁCH (EMPTY STATE) ===== -->
+    <div th:if="${#lists.isEmpty(books)}" class="empty-state-card">
+        <div class="empty-state-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h3 class="empty-state-title">Không tìm thấy cuốn sách nào phù hợp</h3>
+        <p class="empty-state-desc">
+            Không có kết quả nào khớp với điều kiện tìm kiếm của bạn. Hãy thử thay đổi từ khóa, kiểm tra chính tả hoặc chọn danh mục khác.
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a th:href="@{/client/books}" class="btn btn-primary" style="border-radius: 9999px; padding: 10px 24px;">
+                <i class="fas fa-redo"></i> Xem tất cả kho sách
+            </a>
+            <button type="button" class="btn btn-outline" onclick="openClientQrLookupModal()" style="border-radius: 9999px; padding: 10px 24px;">
+                <i class="fas fa-camera"></i> Quét mã vạch / QR
+            </button>
+        </div>
     </div>
 
 </div>
+
+<!-- CSS Riêng Biệt Cho Mục Tra Cứu & Bộ Lọc Đẹp Mắt -->
+<style>
+    /* Gợi ý tìm kiếm */
+    .search-suggest-tags {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+    }
+    .suggest-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .suggest-tag-chip {
+        color: #e0e7ff;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 3px 10px;
+        border-radius: 9999px;
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.2s ease;
+        font-size: 0.8rem;
+    }
+    .suggest-tag-chip:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .qr-scan-btn {
+        border-radius: 9999px !important;
+        background: #ffffff !important;
+        color: #2563eb !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        border: 1px solid #bfdbfe !important;
+        transition: all 0.2s ease !important;
+    }
+    .qr-scan-btn:hover {
+        background: #eff6ff !important;
+        border-color: #3b82f6 !important;
+        transform: translateY(-1px);
+    }
+    .search-submit-btn {
+        border-radius: 9999px !important;
+        white-space: nowrap !important;
+        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%) !important;
+        border: none !important;
+        padding: 10px 22px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35) !important;
+    }
+    .search-submit-btn:hover {
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.5) !important;
+        transform: translateY(-1px);
+    }
+
+    /* Khối phân loại thể loại */
+    .category-filter-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px 22px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+    }
+    .category-filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .category-filter-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary, #0f172a);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .category-filter-section .filter-pills-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 0;
+        justify-content: flex-start;
+    }
+    .category-filter-section .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        border-radius: 9999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        color: #475569;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .category-filter-section .filter-pill:hover {
+        background: #f1f5f9;
+        color: #2563eb;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+    .category-filter-section .filter-pill.active {
+        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        border-color: transparent !important;
+        box-shadow: 0 6px 14px rgba(79, 70, 229, 0.35) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Thanh toolbar kết quả & bộ lọc đang chọn */
+    .search-toolbar-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 20px;
+        margin-bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    }
+    .search-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    .result-count-box {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .result-count-number {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #4f46e5;
+    }
+    .active-filter-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filter-chip-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+        padding: 4px 10px 4px 12px;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        animation: fadeIn 0.3s ease;
+    }
+    .chip-remove-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #1e40af;
+        text-decoration: none;
+        font-size: 1.1rem;
+        line-height: 1;
+        transition: all 0.2s ease;
+        margin-left: 2px;
+    }
+    .chip-remove-btn:hover {
+        background: #ef4444;
+        color: #ffffff;
+    }
+    .reset-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #ef4444;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .reset-filter-btn:hover {
+        background: #ef4444;
+        color: #ffffff;
+        border-color: #ef4444;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+    }
+
+    /* Empty state */
+    .empty-state-card {
+        background: #ffffff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 20px;
+        padding: 60px 24px;
+        text-align: center;
+        max-width: 680px;
+        margin: 20px auto 40px auto;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .empty-state-icon {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px auto;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: #3b82f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    .empty-state-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+    .empty-state-desc {
+        color: #64748b;
+        font-size: 0.95rem;
+        max-width: 480px;
+        margin: 0 auto 24px auto;
+        line-height: 1.6;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .search-toolbar-card {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-toolbar-right {
+            text-align: center;
+        }
+        .reset-filter-btn {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+</style>
 </body>
 </html>

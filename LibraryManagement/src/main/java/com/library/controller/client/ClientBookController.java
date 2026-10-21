@@ -20,13 +20,23 @@ public class ClientBookController {
     public String searchBooks(@RequestParam(value = "keyword", required = false) String keyword,
                               @RequestParam(value = "category", required = false) String category,
                               Model model) {
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            model.addAttribute("books", bookService.searchBooks(keyword));
-        } else if (category != null && !category.trim().isEmpty()) {
-            model.addAttribute("books", bookService.getBooksByCategory(category));
+        java.util.List<com.library.model.Book> books;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasCategory = category != null && !category.trim().isEmpty();
+
+        if (hasKeyword && hasCategory) {
+            String catTrim = category.trim();
+            books = bookService.searchBooks(keyword.trim()).stream()
+                    .filter(b -> b.getCategory() != null && b.getCategory().equalsIgnoreCase(catTrim))
+                    .toList();
+        } else if (hasKeyword) {
+            books = bookService.searchBooks(keyword.trim());
+        } else if (hasCategory) {
+            books = bookService.getBooksByCategory(category.trim());
         } else {
-            model.addAttribute("books", bookService.getAllBooks());
+            books = bookService.getAllBooks();
         }
+        model.addAttribute("books", books);
 
         model.addAttribute("categories", bookService.getAllCategories());
         model.addAttribute("keyword", keyword);
