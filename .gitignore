@@ -14,5 +14,10 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Archives & Exports
+*.zip
+*.tar.gz
+push_output.txt
+
 # Agents & secrets
 .agents/
