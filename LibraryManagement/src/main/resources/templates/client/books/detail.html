@@ -169,9 +169,13 @@
                                         <span th:unless="${c.status == 'AVAILABLE'}" style="padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #b91c1c;">Đang mượn</span>
                                     </td>
                                     <td style="padding: 10px 12px; text-align: center;">
-                                        <a th:href="@{/api/qr/image(code=${c.barcode},size=350)}" target="_blank" title="Bấm để xem ảnh QR phóng to" style="color: #2563eb; text-decoration: none;">
-                                            <i class="fas fa-qrcode" style="font-size: 1.2rem;"></i>
-                                        </a>
+                                        <button type="button" class="btn-qr-view"
+                                                th:attr="data-barcode=${c.barcode},data-location=${c.location ?: 'Kệ A1 - Tầng 1'},data-status=${c.status}"
+                                                onclick="openCopyQrModal(this)"
+                                                title="Bấm để xem ảnh mã QR trực tiếp"
+                                                style="background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                                            <i class="fas fa-qrcode" style="font-size: 1.15rem;"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -183,6 +187,117 @@
         </div>
     </div>
 
+    <!-- Modal xem mã QR bản sách trực tiếp không nhảy tab -->
+    <div id="copyQrViewModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 9999; overflow-y: auto;">
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+            <div style="background: #ffffff; width: 100%; max-width: 440px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); overflow: hidden; animation: fadeInModal 0.2s ease-out;">
+                <!-- Header Modal -->
+                <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: #f8fafc;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 1.05rem; color: #0f172a; font-weight: 700;">Mã QR Bản Sách</h4>
+                            <p style="margin: 0; font-size: 0.78rem; color: #64748b;">Xem và tải mã QR trực tiếp</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeCopyQrModal()" style="background: none; border: none; font-size: 1.6rem; color: #94a3b8; cursor: pointer; line-height: 1; padding: 4px 8px;">&times;</button>
+                </div>
+
+                <!-- Body Modal -->
+                <div style="padding: 24px 20px; text-align: center;">
+                    <!-- Khung ảnh QR -->
+                    <div style="background: #ffffff; padding: 12px; border-radius: 16px; border: 2px dashed #93c5fd; display: inline-block; box-shadow: 0 4px 12px rgba(37,99,235,0.08); margin-bottom: 16px;">
+                        <img id="modalQrImage" src="" alt="QR Code" style="width: 220px; height: 220px; display: block; border-radius: 8px;">
+                    </div>
+
+                    <!-- Thẻ tóm tắt thông tin -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; text-align: left; margin-bottom: 18px;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="color: #64748b; font-size: 0.8rem;">Tựa sách:</span>
+                            <div style="color: #0f172a; font-weight: 700; font-size: 0.95rem; line-height: 1.35; margin-top: 2px;" th:text="${book.title}">Tên sách</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                            <div>
+                                <span style="color: #64748b; font-size: 0.8rem; display: block;">Mã bản sách:</span>
+                                <span id="modalQrBarcode" style="font-family: monospace; font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">-</span>
+                            </div>
+                            <div>
+                                <span style="color: #64748b; font-size: 0.8rem; display: block;">Vị trí kệ:</span>
+                                <span id="modalQrLocation" style="color: #0369a1; font-weight: 600; font-size: 0.88rem;">-</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span style="color: #64748b; font-size: 0.8rem;">Tình trạng:</span>
+                            <span id="modalQrStatus" style="padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Nút thao tác -->
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <a id="modalQrDownloadBtn" href="#" download class="btn btn-primary" style="flex: 1; padding: 10px 14px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none;">
+                            <i class="fas fa-download"></i> Tải ảnh QR
+                        </a>
+                        <button type="button" class="btn btn-outline" onclick="closeCopyQrModal()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1; color: #475569; font-weight: 600; background: #fff;">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .btn-qr-view:hover {
+            background: #2563eb !important;
+            color: #ffffff !important;
+            border-color: #2563eb !important;
+            transform: scale(1.08);
+        }
+    </style>
+
+    <script>
+        function openCopyQrModal(btn) {
+            const barcode = btn.getAttribute('data-barcode');
+            const location = btn.getAttribute('data-location') || 'Kệ A1 - Tầng 1';
+            const status = btn.getAttribute('data-status');
+
+            document.getElementById('modalQrBarcode').textContent = barcode;
+            document.getElementById('modalQrLocation').textContent = location;
+            document.getElementById('modalQrImage').src = '/api/qr/image?code=' + encodeURIComponent(barcode) + '&size=350';
+            document.getElementById('modalQrDownloadBtn').href = '/api/qr/image?code=' + encodeURIComponent(barcode) + '&size=500&download=true';
+            document.getElementById('modalQrDownloadBtn').setAttribute('download', 'QR_' + barcode + '.png');
+
+            const statusBadge = document.getElementById('modalQrStatus');
+            if (status === 'AVAILABLE') {
+                statusBadge.textContent = 'Còn sẵn';
+                statusBadge.style.background = '#dcfce7';
+                statusBadge.style.color = '#15803d';
+            } else {
+                statusBadge.textContent = 'Đang mượn';
+                statusBadge.style.background = '#fee2e2';
+                statusBadge.style.color = '#b91c1c';
+            }
+
+            document.getElementById('copyQrViewModal').style.display = 'block';
+        }
+
+        function closeCopyQrModal() {
+            document.getElementById('copyQrViewModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('copyQrViewModal');
+            if (e.target === modal) {
+                closeCopyQrModal();
+            }
+        });
+    </script>
 </div>
 </body>
 </html>
