@@ -54,9 +54,17 @@ public class QrApiController {
      * Sử dụng khi quét mã tại giao diện mượn và trả sách.
      */
     @GetMapping("/book-copies/{barcode}")
-    public ResponseEntity<?> getCopyDetails(@PathVariable String barcode) {
+    public ResponseEntity<?> getCopyDetails(@PathVariable String barcode, org.springframework.security.core.Authentication authentication) {
         try {
             BookCopyScanDto scanDto = loanService.getBookCopyScanInfo(barcode);
+            boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            if (!isAdmin) {
+                scanDto.setReaderName(null);
+                scanDto.setReaderCode(null);
+                scanDto.setReaderPhone(null);
+                scanDto.setActiveLoanCode(null);
+            }
             return ResponseEntity.ok(scanDto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

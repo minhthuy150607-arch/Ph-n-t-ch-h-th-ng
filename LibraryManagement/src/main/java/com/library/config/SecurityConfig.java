@@ -47,8 +47,8 @@ public class SecurityConfig {
                 // Công khai
                 .requestMatchers("/", "/home", "/client/**", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 .requestMatchers("/login", "/register", "/h2-console/**", "/uploads/**").permitAll()
-                .requestMatchers("/api/qr/**").permitAll()
-                // API nội bộ quản lý thư viện
+                .requestMatchers("/api/qr/**", "/api/book-copies/**").permitAll()
+                // API nội bộ quản lý thư viện (mượn/trả/quản trị)
                 .requestMatchers("/api/**").hasRole("ADMIN")
                 // Quản trị viên
                 .requestMatchers("/admin/**").hasRole("ADMIN")

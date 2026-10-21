@@ -118,55 +118,144 @@ public class DataInitializer implements CommandLineRunner {
                         "/images/cover-cha-giau.svg"),
                 new BookData("BK-008", "Kinh Tế Học Hài Hước (Freakonomics)", "Steven D. Levitt, Stephen J. Dubner", "Kinh tế", "NXB Thế Giới", 2017,
                         "Khám phá thế giới qua lăng kính kinh tế học độc đáo và bất ngờ.",
-                        "/images/cover-freakonomics.svg")
+                        "/images/cover-freakonomics.svg"),
+                new BookData("BK-009", "Sapiens: Lược Sử Loài Người", "Yuval Noah Harari", "Khoa học - Lịch sử", "NXB Tri Thức", 2014,
+                        "Cuộc cách mạng nhận thức, nông nghiệp và khoa học đã định hình loài người như thế nào.",
+                        "/images/cover-sapiens.svg"),
+                new BookData("BK-010", "Dữ Liệu Lớn (Big Data - Cuộc Cách Mạng Về Dữ Liệu)", "Viktor Mayer-Schönberger", "Công nghệ thông tin", "NXB Trẻ", 2013,
+                        "Cách mạng dữ liệu lớn sẽ làm thay đổi hoàn toàn cách chúng ta sống, làm việc và tư duy.",
+                        "/images/cover-big-data.svg")
         );
 
-        if (bookRepository.count() > 0) {
-            // Cập nhật lại ảnh nếu đang dùng link ngoài cũ
-            for (Book b : bookRepository.findAll()) {
-                if (b.getCoverImage() == null || b.getCoverImage().startsWith("http")) {
-                    for (BookData bd : bookList) {
-                        if (bd.code.equals(b.getBookCode())) {
-                            b.setCoverImage(bd.image);
-                            bookRepository.save(b);
-                            break;
-                        }
-                    }
+        if (bookRepository.count() == 0) {
+            for (BookData bd : bookList) {
+                Book book = Book.builder()
+                        .bookCode(bd.code)
+                        .title(bd.title)
+                        .author(bd.author)
+                        .category(bd.category)
+                        .publisher(bd.publisher)
+                        .publishYear(bd.year)
+                        .description(bd.description)
+                        .coverImage(bd.image)
+                        .status("ACTIVE")
+                        .build();
+                bookRepository.save(book);
+
+                // Tạo 3 bản sách cho mỗi đầu sách
+                for (int i = 1; i <= 3; i++) {
+                    BookCopy copy = BookCopy.builder()
+                            .book(book)
+                            .barcode("BC-" + bd.code + "-0" + i)
+                            .location("Kệ " + (char)('A' + (i % 3)) + (i) + " - Tầng " + (1 + i % 2))
+                            .status("AVAILABLE")
+                            .condition(i == 3 ? "FAIR" : "GOOD")
+                            .notes("Bản sách số " + i)
+                            .build();
+                    bookCopyRepository.save(copy);
                 }
             }
-            return;
         }
 
-        for (BookData bd : bookList) {
-            Book book = Book.builder()
-                    .bookCode(bd.code)
-                    .title(bd.title)
-                    .author(bd.author)
-                    .category(bd.category)
-                    .publisher(bd.publisher)
-                    .publishYear(bd.year)
-                    .description(bd.description)
-                    .coverImage(bd.image)
-                    .status("ACTIVE")
-                    .build();
-            bookRepository.save(book);
+        // Đảm bảo các cuốn sách và bản sách minh họa theo đúng slide chuẩn (BS0001, BS0002, BS0003, BS0004)
+        initIllustrativeCopies(bookList);
+    }
 
-            // Tạo 3 bản sách cho mỗi đầu sách
-            for (int i = 1; i <= 3; i++) {
-                BookCopy copy = BookCopy.builder()
-                        .book(book)
-                        .barcode("BC-" + bd.code + "-0" + i)
-                        .status("AVAILABLE")
-                        .condition(i == 3 ? "FAIR" : "GOOD")
-                        .notes("Bản sách số " + i)
+    private void initIllustrativeCopies(List<BookData> bookList) {
+        // Đảm bảo sách Sapiens và Dữ Liệu Lớn có mặt trong DB
+        for (BookData bd : bookList) {
+            if (bookRepository.findByBookCode(bd.code).isEmpty()) {
+                Book book = Book.builder()
+                        .bookCode(bd.code)
+                        .title(bd.title)
+                        .author(bd.author)
+                        .category(bd.category)
+                        .publisher(bd.publisher)
+                        .publishYear(bd.year)
+                        .description(bd.description)
+                        .coverImage(bd.image)
+                        .status("ACTIVE")
                         .build();
-                bookCopyRepository.save(copy);
+                bookRepository.save(book);
+            }
+        }
+
+        // 1. BS0001: Đắc Nhân Tâm (Dale Carnegie) - Kệ A1 - Tầng 1 (AVAILABLE)
+        createOrUpdateCopy("BS0001", "BK-004", "Kệ A1 - Tầng 1", "AVAILABLE", "GOOD");
+
+        // 2. BS0002: Sapiens (Yuval Noah Harari) - Kệ A1 - Tầng 2 (AVAILABLE)
+        createOrUpdateCopy("BS0002", "BK-009", "Kệ A1 - Tầng 2", "AVAILABLE", "GOOD");
+
+        // 3. BS0003: Nhà Giả Kim (Paulo Coelho) - Kệ B1 - Tầng 1 (BORROWED để thủ thư quét trả sách)
+        createOrUpdateCopy("BS0003", "BK-005", "Kệ B1 - Tầng 1", "BORROWED", "GOOD");
+
+        // 4. BS0004: Dữ Liệu Lớn (Viktor Mayer-Schönberger) - Kệ B1 - Tầng 2 (AVAILABLE)
+        createOrUpdateCopy("BS0004", "BK-010", "Kệ B1 - Tầng 2", "AVAILABLE", "GOOD");
+
+        // Gán vị trí mặc định cho các bản sách cũ nếu đang null
+        for (BookCopy c : bookCopyRepository.findAll()) {
+            if (c.getLocation() == null || c.getLocation().trim().isEmpty()) {
+                c.setLocation("Kệ A1 - Tầng 1");
+                bookCopyRepository.save(c);
             }
         }
     }
 
+    private void createOrUpdateCopy(String barcode, String bookCode, String location, String status, String condition) {
+        BookCopy copy = bookCopyRepository.findByBarcodeIgnoreCase(barcode).orElse(null);
+        Book book = bookRepository.findByBookCode(bookCode).orElse(null);
+        if (book == null) return;
+
+        if (copy == null) {
+            copy = BookCopy.builder()
+                    .book(book)
+                    .barcode(barcode)
+                    .location(location)
+                    .status(status)
+                    .condition(condition)
+                    .notes("Bản sách mã chuẩn QR " + barcode)
+                    .build();
+            bookCopyRepository.save(copy);
+        } else {
+            copy.setBook(book);
+            copy.setLocation(location);
+            copy.setStatus(status);
+            bookCopyRepository.save(copy);
+        }
+    }
+
     private void initLoansAndReservations() {
-        if (loanRepository.count() > 0) return;
+        // Đảm bảo BS0003 có một phiếu mượn đang active để test quét trả sách
+        BookCopy bs0003 = bookCopyRepository.findByBarcodeIgnoreCase("BS0003").orElse(null);
+        if (bs0003 != null && "BORROWED".equalsIgnoreCase(bs0003.getStatus())) {
+            if (loanDetailRepository.findActiveBorrowingByBarcode("BS0003").isEmpty()) {
+                User reader = userRepository.findByUsername("reader").orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
+                User admin = userRepository.findByUsername("admin").orElse(null);
+                if (reader != null) {
+                    Loan testLoan = Loan.builder()
+                            .loanCode("LN-BS0003")
+                            .user(reader)
+                            .librarian(admin)
+                            .loanDate(LocalDate.now().minusDays(3))
+                            .dueDate(LocalDate.now().plusDays(11))
+                            .status("BORROWING")
+                            .notes("Phiếu mượn mẫu quét QR (Nhà Giả Kim - BS0003)")
+                            .build();
+                    loanRepository.save(testLoan);
+
+                    LoanDetail detail = LoanDetail.builder()
+                            .loan(testLoan)
+                            .bookCopy(bs0003)
+                            .status("BORROWING")
+                            .currentDueDate(LocalDate.now().plusDays(11))
+                            .renewalCount(0)
+                            .build();
+                    loanDetailRepository.save(detail);
+                }
+            }
+        }
+
+        if (loanRepository.count() > 1) return;
 
         User reader = userRepository.findByUsername("reader").orElse(null);
         User admin = userRepository.findByUsername("admin").orElse(null);

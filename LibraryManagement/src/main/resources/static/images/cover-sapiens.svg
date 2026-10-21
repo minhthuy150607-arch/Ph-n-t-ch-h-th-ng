@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+  <defs>
+    <linearGradient id="gradSapiens" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#090d16;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#111827;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.8" />
+      <stop offset="60%" style="stop-color:#d97706;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#090d16;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="400" height="560" fill="url(#gradSapiens)"/>
+  <circle cx="200" cy="200" r="110" fill="url(#sunGlow)"/>
+  <circle cx="200" cy="200" r="55" fill="none" stroke="#fcd34d" stroke-width="2" stroke-dasharray="6,4"/>
+  <circle cx="200" cy="200" r="28" fill="#fef3c7" opacity="0.9"/>
+
+  <text x="200" y="80" text-anchor="middle" fill="#fbbf24" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" letter-spacing="4">LỊCH SỬ NHÂN LOẠI</text>
+  <text x="200" y="340" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="900" letter-spacing="2">SAPIENS</text>
+  <text x="200" y="375" text-anchor="middle" fill="#fde68a" font-family="'Segoe UI', Roboto, sans-serif" font-size="15">Lược Sử Loài Người</text>
+  
+  <line x1="80" y1="415" x2="320" y2="415" stroke="rgba(251, 191, 36, 0.3)" stroke-width="1"/>
+  <text x="200" y="460" text-anchor="middle" fill="#f8fafc" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600">Yuval Noah Harari</text>
+</svg>

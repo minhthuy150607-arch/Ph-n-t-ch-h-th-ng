@@ -338,23 +338,41 @@ public class LoanService {
     }
 
     /**
+     * Tiện ích trích xuất mã bản sách sạch từ chuỗi quét (hỗ trợ cả URL hoặc mã trực tiếp).
+     */
+    private String extractBarcode(String raw) {
+        if (raw == null) return "";
+        String trimmed = raw.trim();
+        // Nếu mã quét là URL (ví dụ https://.../BS0001 hoặc http://.../books?code=BS0001)
+        if (trimmed.contains("/")) {
+            trimmed = trimmed.substring(trimmed.lastIndexOf('/') + 1).trim();
+        }
+        if (trimmed.contains("=")) {
+            trimmed = trimmed.substring(trimmed.lastIndexOf('=') + 1).trim();
+        }
+        return trimmed;
+    }
+
+    /**
      * Tra cứu thông tin đầy đủ của bản sách qua Barcode / QR Code.
-     * Bao gồm thông tin sách, ảnh bìa, tình trạng, và thông tin bạn đọc đang mượn (nếu có).
+     * Bao gồm thông tin sách, ảnh bìa, tình trạng, vị trí kệ, và thông tin bạn đọc đang mượn (nếu có).
      */
     @Transactional(readOnly = true)
     public BookCopyScanDto getBookCopyScanInfo(String barcode) {
-        if (barcode == null || barcode.trim().isEmpty()) {
+        String cleanCode = extractBarcode(barcode);
+        if (cleanCode.isEmpty()) {
             throw new IllegalArgumentException("Mã bản sách không được để trống!");
         }
 
-        BookCopy copy = bookCopyRepository.findByBarcode(barcode.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bản sách với mã: " + barcode.trim()));
+        BookCopy copy = bookCopyRepository.findByBarcodeIgnoreCase(cleanCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bản sách với mã: " + cleanCode));
 
         Book book = copy.getBook();
 
         BookCopyScanDto.BookCopyScanDtoBuilder builder = BookCopyScanDto.builder()
                 .copyId(copy.getId())
                 .barcode(copy.getBarcode())
+                .location(copy.getLocation() != null ? copy.getLocation() : "Kệ A1 - Tầng 1")
                 .status(copy.getStatus())
                 .condition(copy.getCondition())
                 .notes(copy.getNotes())
@@ -402,12 +420,13 @@ public class LoanService {
      */
     @Transactional
     public LoanDetail returnBookByBarcode(String barcode, String conditionOnReturn, Long librarianId) {
-        if (barcode == null || barcode.trim().isEmpty()) {
+        String cleanCode = extractBarcode(barcode);
+        if (cleanCode.isEmpty()) {
             throw new IllegalArgumentException("Mã bản sách không được để trống!");
         }
 
-        LoanDetail detail = loanDetailRepository.findActiveBorrowingByBarcode(barcode.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu mượn đang hoạt động cho bản sách mã: " + barcode.trim()));
+        LoanDetail detail = loanDetailRepository.findActiveBorrowingByBarcode(cleanCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu mượn đang hoạt động cho bản sách mã: " + cleanCode));
 
         returnBook(detail.getId(), conditionOnReturn);
 

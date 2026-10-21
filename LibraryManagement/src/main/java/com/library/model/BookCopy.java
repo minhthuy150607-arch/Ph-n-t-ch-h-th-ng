@@ -27,6 +27,10 @@ public class BookCopy {
     @Column(nullable = false, unique = true, length = 50)
     private String barcode;
 
+    @Column(name = "location", length = 100)
+    @Builder.Default
+    private String location = "Kệ A1 - Tầng 1";
+
     @Column(nullable = false, length = 20)
     @Builder.Default
     private String status = "AVAILABLE"; // AVAILABLE, BORROWED, RESERVED, LOST, DAMAGED

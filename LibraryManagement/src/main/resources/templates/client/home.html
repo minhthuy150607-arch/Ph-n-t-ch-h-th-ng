@@ -25,11 +25,14 @@
                     Hệ thống tra cứu thông minh, đặt trước và mượn trả trực tuyến nhanh chóng. Kho tài liệu phong phú phục vụ nhu cầu học tập và nghiên cứu của bạn.
                 </p>
 
-                <!-- Integrated Quick Search Box in Hero -->
-                <form th:action="@{/client/books}" method="get" class="hero-search-box">
+                <!-- Integrated Quick Search Box in Hero with QR Camera Scanner -->
+                <form th:action="@{/client/books}" method="get" class="hero-search-box" style="display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-search"></i>
-                    <input type="text" name="keyword" placeholder="Tìm tên sách, tác giả, thể loại...">
-                    <button type="submit" class="btn btn-primary">
+                    <input type="text" name="keyword" placeholder="Tìm tên sách, tác giả, mã bản sách (BS0001)...">
+                    <button type="button" class="btn btn-outline" onclick="openClientQrLookupModal()" style="border-radius: var(--border-radius-full); background: rgba(255,255,255,0.9); color: #2563eb; font-weight: 600; white-space: nowrap; border: 1px solid #bfdbfe;" title="Quét mã QR hoặc Barcode">
+                        <i class="fas fa-camera"></i> <span>Quét QR</span>
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
                         <span>Tra cứu</span> <i class="fas fa-arrow-right"></i>
                     </button>
                 </form>

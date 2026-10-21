@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
     Optional<BookCopy> findByBarcode(String barcode);
+    Optional<BookCopy> findByBarcodeIgnoreCase(String barcode);
     List<BookCopy> findByBookId(Long bookId);
     List<BookCopy> findByStatus(String status);
     List<BookCopy> findByBookIdAndStatus(Long bookId, String status);

@@ -4,8 +4,8 @@
       layout:decorate="~{layouts/admin-layout}"
       lang="vi">
 <head>
-    <title>Quét QR Trả Sách Nhanh</title>
-    <!-- Thư viện quét mã QR chuyên dụng chạy offline -->
+    <title>Quét QR & Mã Sách Trả Nhanh</title>
+    <!-- Thư viện quét mã QR Code & Barcode -->
     <script th:src="@{/js/html5-qrcode.min.js}"></script>
     <style>
         .scanner-card {
@@ -18,7 +18,7 @@
 
         .camera-viewport {
             width: 100%;
-            min-height: 280px;
+            min-height: 290px;
             background: #0f172a;
             position: relative;
             border-radius: 12px;
@@ -36,35 +36,37 @@
         #qr-reader video {
             border-radius: 12px;
             object-fit: cover;
+            width: 100% !important;
         }
 
         .scan-overlay-guide {
             position: absolute;
-            width: 220px;
-            height: 220px;
-            border: 3px solid #38bdf8;
-            border-radius: 16px;
+            width: 260px;
+            height: 190px;
+            border: 2px dashed #38bdf8;
+            border-radius: 14px;
             box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.45);
             pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 5;
         }
 
         .scan-overlay-guide::after {
             content: '';
             position: absolute;
-            width: 100%;
+            width: 90%;
             height: 2px;
             background: #38bdf8;
-            box-shadow: 0 0 8px #38bdf8;
+            box-shadow: 0 0 10px #38bdf8;
             animation: scanLine 2s infinite ease-in-out;
         }
 
         @keyframes scanLine {
-            0% { top: 0; }
-            50% { top: 100%; }
-            100% { top: 0; }
+            0% { top: 10%; opacity: 0.2; }
+            50% { top: 90%; opacity: 1; }
+            100% { top: 10%; opacity: 0.2; }
         }
 
         .result-box {
@@ -90,14 +92,33 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
+
+        .quick-chip {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .quick-chip:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
     </style>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="page-header">
         <div class="page-header-left">
-            <h1 class="page-title"><i class="fas fa-qrcode text-primary"></i> Quét QR Trả Sách Nhanh</h1>
-            <p class="page-subtitle">Đưa mã QR trên bản sách trước camera để tra cứu phiếu và nhận trả sách tự động</p>
+            <h1 class="page-title"><i class="fas fa-qrcode text-primary"></i> Quét QR & Mã Sách Trả Nhanh</h1>
+            <p class="page-subtitle">Đưa mã QR hoặc Barcode trên bản sách trước camera để tra cứu phiếu và nhận trả sách tự động</p>
         </div>
         <div class="page-header-right">
             <a th:href="@{/admin/loans}" class="btn btn-outline">
@@ -116,49 +137,68 @@
         
         <!-- CỘT TRÁI: CAMERA QUÉT MÃ QR & NHẬP TAY -->
         <div class="scanner-card" style="padding: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
                 <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b;">
-                    <i class="fas fa-camera text-primary"></i> Camera Quét Mã
+                    <i class="fas fa-camera text-primary"></i> Camera Quét Mã (QR & Barcode)
                 </h3>
-                <div style="display: flex; gap: 6px;">
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <!-- Dropdown chọn Camera -->
+                    <select id="cameraSelect" class="form-control" style="font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; display: none; max-width: 140px;" onchange="onCameraSelectChange()">
+                    </select>
+
                     <button type="button" id="btnToggleCamera" class="btn btn-sm btn-primary" onclick="toggleScanner()">
                         <i class="fas fa-play" id="iconCameraState"></i> <span id="textCameraState">Mở Camera</span>
                     </button>
-                    <button type="button" id="btnFlipCamera" class="btn btn-sm btn-outline" onclick="switchCamera()" title="Đổi camera" style="display: none;">
-                        <i class="fas fa-sync-alt"></i>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="triggerFileInput()" title="Quét từ file ảnh">
+                        <i class="fas fa-file-image"></i> File ảnh
                     </button>
+                    <!-- Input file ẩn để chọn ảnh quét -->
+                    <input type="file" id="qrFileInput" accept="image/*" style="display: none;" onchange="handleFileScan(event)">
                 </div>
             </div>
 
             <!-- Khung hiển thị camera quét -->
             <div class="camera-viewport" id="viewportContainer">
                 <div id="qr-reader"></div>
-                <div id="cameraPlaceholder" style="text-align: center; color: #94a3b8; padding: 30px;">
+                <div id="scanGuide" class="scan-overlay-guide" style="display: none;"></div>
+                
+                <div id="cameraPlaceholder" style="text-align: center; color: #94a3b8; padding: 30px; position: relative; z-index: 2;">
                     <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 12px; display: block; color: #64748b;"></i>
-                    <p style="margin-bottom: 10px;">Camera đang tạm tắt</p>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="startScanner()">
-                        <i class="fas fa-camera"></i> Kích hoạt Camera
-                    </button>
+                    <p style="margin-bottom: 10px; font-weight: 500;">Camera đang tạm tắt</p>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="startScanner()">
+                            <i class="fas fa-camera"></i> Kích hoạt Camera
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" style="background: rgba(255,255,255,0.1); color: #e2e8f0; border-color: #64748b;" onclick="triggerFileInput()">
+                            <i class="fas fa-upload"></i> Chọn file ảnh QR
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Nhập mã thủ công -->
             <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid #f1f5f9;">
                 <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px; font-size: 0.9rem;">
-                    <i class="fas fa-keyboard"></i> Nhập mã bản sách thủ công (Barcode):
+                    <i class="fas fa-keyboard"></i> Nhập mã bản sách thủ công (Barcode / QR):
                 </label>
                 <div style="display: flex; gap: 8px;">
                     <input type="text" id="manualBarcodeInput" class="form-control" 
-                           placeholder="Ví dụ: BC-BK01-01" 
-                           style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace;"
+                           placeholder="Ví dụ: BS0001, BS0002, BS0003..." 
+                           style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 0.95rem;"
                            onkeypress="if(event.key === 'Enter') handleManualSearch();">
                     <button type="button" class="btn btn-outline" onclick="handleManualSearch()" style="white-space: nowrap;">
                         <i class="fas fa-search"></i> Tra cứu
                     </button>
                 </div>
-                <small style="color: #64748b; display: block; margin-top: 6px;">
-                    Sử dụng nếu camera bị mờ hoặc thiết bị không hỗ trợ camera.
-                </small>
+                
+                <!-- Gợi ý bấm nhanh mã mẫu chuẩn theo slide -->
+                <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                    <span style="font-size: 0.8rem; color: #64748b;">Mã test mẫu:</span>
+                    <span class="quick-chip" onclick="testFillBarcode('BS0001')" title="Đắc nhân tâm">BS0001 (Đắc nhân tâm)</span>
+                    <span class="quick-chip" onclick="testFillBarcode('BS0002')" title="Sapiens">BS0002 (Sapiens)</span>
+                    <span class="quick-chip" onclick="testFillBarcode('BS0003')" style="color: #dc2626; border-color: #fca5a5; background: #fef2f2;" title="Nhà giả kim - Đang mượn">BS0003 (Nhà giả kim - Đang mượn)</span>
+                    <span class="quick-chip" onclick="testFillBarcode('BS0004')" title="Dữ liệu lớn">BS0004 (Dữ liệu lớn)</span>
+                </div>
             </div>
         </div>
 
@@ -194,8 +234,13 @@
                             <p style="margin: 0 0 6px 0; font-size: 0.85rem; color: #64748b;">
                                 Tác giả: <strong id="resAuthor">Tác giả</strong> | Thể loại: <span id="resCategory">Thể loại</span>
                             </p>
-                            <div style="display: inline-block; background: #f1f5f9; padding: 3px 10px; border-radius: 6px; font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #1e293b;">
-                                Mã bản: <span id="resBarcode">BC-001</span>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;">
+                                <div style="display: inline-block; background: #f1f5f9; padding: 3px 10px; border-radius: 6px; font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #1e293b; border: 1px solid #e2e8f0;">
+                                    Mã bản sách: <span id="resBarcode" style="color: #2563eb;">BS0001</span>
+                                </div>
+                                <div style="display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; padding: 3px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: #1d4ed8; border: 1px solid #bfdbfe;">
+                                    <i class="fas fa-layer-group"></i> Vị trí: <span id="resLocation">Kệ A1 - Tầng 1</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -217,8 +262,15 @@
                     </div>
 
                     <!-- Nếu sách không ở trạng thái BORROWED -->
-                    <div id="notBorrowedNotice" style="display: none; margin-top: 14px; padding: 12px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-size: 0.9rem;">
-                        <i class="fas fa-info-circle"></i> Bản sách này hiện tại không có giao dịch mượn đang diễn ra (Trạng thái: <strong id="resCurrentStatusText">AVAILABLE</strong>).
+                    <div id="notBorrowedNotice" style="display: none; margin-top: 14px; padding: 14px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <i class="fas fa-check-circle"></i> Bản sách này hiện đang ở trạng thái: <strong id="resCurrentStatusText">CÒN SẴN</strong> trên kệ (chưa được mượn).
+                            </div>
+                            <a id="resCreateLoanLink" href="#" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Tạo phiếu mượn cuốn này
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -284,15 +336,15 @@
 <script layout:fragment="scripts">
     let html5QrCode = null;
     let isScanning = false;
-    let currentCameraIndex = 0;
     let availableCameras = [];
+    let selectedCameraId = null;
     let currentScannedData = null;
     let sessionCount = 0;
 
     // Hiển thị thông báo
     function showAlert(message, type) {
         const el = document.getElementById('alertMessage');
-        el.textContent = message;
+        el.innerHTML = message;
         el.style.display = 'block';
         if (type === 'success') {
             el.style.background = '#dcfce7';
@@ -314,46 +366,162 @@
         document.getElementById('alertMessage').style.display = 'none';
     }
 
-    // Khởi tạo và Bật Camera Scanner
+    function triggerFileInput() {
+        document.getElementById('qrFileInput').click();
+    }
+
+    // Quét trực tiếp từ file ảnh đã chụp
+    function handleFileScan(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        clearAlert();
+        initHtml5QrCodeInstance();
+
+        showAlert('Đang phân tích hình ảnh mã QR / Barcode...', 'info');
+        html5QrCode.scanFile(file, true)
+            .then(decodedText => {
+                showAlert('Quét thành công từ file ảnh!', 'success');
+                onScanSuccess(decodedText);
+            })
+            .catch(err => {
+                showAlert('Không nhận diện được mã QR hoặc mã vạch từ ảnh này. Vui lòng chọn ảnh chụp rõ nét hơn hoặc nhập mã bên dưới!', 'error');
+            })
+            .finally(() => {
+                e.target.value = '';
+            });
+    }
+
+    // Khởi tạo instance Html5Qrcode hỗ trợ cả QR và Barcode
+    function initHtml5QrCodeInstance() {
+        if (!html5QrCode) {
+            let formats = undefined;
+            if (window.Html5QrcodeSupportedFormats) {
+                formats = [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ];
+            }
+            html5QrCode = new Html5Qrcode("qr-reader", {
+                formatsToSupport: formats,
+                verbose: false
+            });
+        }
+    }
+
+    // Bật Camera Scanner
     async function startScanner() {
         clearAlert();
+        initHtml5QrCodeInstance();
+
+        const placeholder = document.getElementById('cameraPlaceholder');
+        placeholder.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; margin-bottom: 12px; display: block; color: #38bdf8;"></i><p>Đang kết nối camera...</p>';
+
+        const scanConfig = {
+            fps: 15,
+            qrbox: function(viewfinderWidth, viewfinderHeight) {
+                // Khung quét hình chữ nhật ngang tương thích cả QR và Barcode dài
+                const w = Math.floor(Math.min(viewfinderWidth * 0.85, 320));
+                const h = Math.floor(Math.min(viewfinderHeight * 0.65, 220));
+                return { width: w, height: h };
+            },
+            aspectRatio: 1.333334
+        };
+
         try {
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("qr-reader");
+            // Thứ tự ưu tiên: 1. Camera ID đã chọn, 2. Camera sau (environment), 3. Camera trước (user)
+            let started = false;
+
+            if (selectedCameraId) {
+                await html5QrCode.start(selectedCameraId, scanConfig, onScanSuccess, onScanFailure);
+                started = true;
+            } else {
+                try {
+                    await html5QrCode.start({ facingMode: "environment" }, scanConfig, onScanSuccess, onScanFailure);
+                    started = true;
+                } catch (envErr) {
+                    console.log('Không mở được camera sau, chuyển sang camera mặc định / trước:', envErr);
+                    await html5QrCode.start({ facingMode: "user" }, scanConfig, onScanSuccess, onScanFailure);
+                    started = true;
+                }
             }
 
-            const cameras = await Html5Qrcode.getCameras();
-            if (!cameras || cameras.length === 0) {
-                showAlert('Không tìm thấy camera trên thiết bị! Bạn có thể sử dụng ô nhập mã thủ công.', 'error');
-                return;
+            if (started) {
+                isScanning = true;
+                placeholder.style.display = 'none';
+                document.getElementById('scanGuide').style.display = 'flex';
+                document.getElementById('textCameraState').textContent = 'Tắt Camera';
+                document.getElementById('iconCameraState').className = 'fas fa-stop';
+                document.getElementById('btnToggleCamera').className = 'btn btn-sm btn-outline';
+
+                // Sau khi đã cấp quyền thành công, tải danh sách camera vào dropdown
+                loadCameraDropdown();
             }
-
-            availableCameras = cameras;
-            if (cameras.length > 1) {
-                document.getElementById('btnFlipCamera').style.display = 'inline-block';
-            }
-
-            document.getElementById('cameraPlaceholder').style.display = 'none';
-
-            const cameraId = cameras[currentCameraIndex % cameras.length].id;
-            await html5QrCode.start(
-                cameraId,
-                {
-                    fps: 10,
-                    qrbox: { width: 220, height: 220 }
-                },
-                onScanSuccess,
-                onScanFailure
-            );
-
-            isScanning = true;
-            document.getElementById('textCameraState').textContent = 'Tắt Camera';
-            document.getElementById('iconCameraState').className = 'fas fa-stop';
-            document.getElementById('btnToggleCamera').className = 'btn btn-sm btn-outline';
         } catch (err) {
-            console.error('Lỗi bật camera:', err);
-            showAlert('Không thể truy cập camera! Vui lòng cấp quyền truy cập camera trong trình duyệt hoặc sử dụng ô nhập mã thủ công.', 'error');
-            document.getElementById('cameraPlaceholder').style.display = 'block';
+            console.error('Lỗi khởi động camera:', err);
+            handleCameraError(err);
+        }
+    }
+
+    // Tải danh sách camera vào dropdown
+    async function loadCameraDropdown() {
+        try {
+            if (Html5Qrcode && Html5Qrcode.getCameras) {
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    availableCameras = cameras;
+                    const select = document.getElementById('cameraSelect');
+                    select.innerHTML = '';
+                    cameras.forEach((cam, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = cam.id;
+                        opt.textContent = cam.label || ('Camera ' + (idx + 1));
+                        if (selectedCameraId === cam.id) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                    if (cameras.length > 1) {
+                        select.style.display = 'inline-block';
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('Không thể lấy danh sách camera:', e);
+        }
+    }
+
+    // Đổi camera qua dropdown
+    async function onCameraSelectChange() {
+        const select = document.getElementById('cameraSelect');
+        selectedCameraId = select.value;
+        if (isScanning) {
+            await stopScanner();
+            await startScanner();
+        }
+    }
+
+    // Xử lý lỗi camera với thông điệp rõ ràng
+    function handleCameraError(err) {
+        document.getElementById('cameraPlaceholder').style.display = 'block';
+        document.getElementById('cameraPlaceholder').innerHTML = `
+            <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 12px; display: block; color: #ef4444;"></i>
+            <p style="margin-bottom: 10px; color: #f87171; font-weight: 500;">Không thể mở camera</p>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-primary" onclick="startScanner()"><i class="fas fa-redo"></i> Thử lại</button>
+                <button type="button" class="btn btn-sm btn-outline" style="background: rgba(255,255,255,0.1); color: #e2e8f0; border-color: #64748b;" onclick="triggerFileInput()"><i class="fas fa-upload"></i> Chọn file ảnh QR</button>
+            </div>
+        `;
+
+        const errStr = (err && err.message) ? err.message.toLowerCase() : '';
+        if (errStr.includes('notallowederror') || errStr.includes('permission')) {
+            showAlert('Trình duyệt đang chặn quyền Camera! Vui lòng bấm vào <strong>biểu tượng Camera / Ổ khóa</strong> trên thanh địa chỉ trình duyệt, chọn <strong>Cho phép (Allow)</strong> và tải lại trang.', 'error');
+        } else if (errStr.includes('notreadableerror') || errStr.includes('in use') || errStr.includes('could not start')) {
+            showAlert('Camera đang bị ứng dụng khác (Zoom, Teams, Zalo...) sử dụng! Vui lòng tắt ứng dụng kia hoặc chọn <strong>File ảnh QR</strong> để quét.', 'error');
+        } else {
+            showAlert('Không tìm thấy thiết bị camera hoặc trình duyệt chưa hỗ trợ! Bạn có thể sử dụng tính năng <strong>Quét từ file ảnh</strong> hoặc <strong>Nhập mã thủ công</strong> bên dưới.', 'error');
         }
     }
 
@@ -367,7 +535,16 @@
             }
             isScanning = false;
         }
+        document.getElementById('scanGuide').style.display = 'none';
         document.getElementById('cameraPlaceholder').style.display = 'block';
+        document.getElementById('cameraPlaceholder').innerHTML = `
+            <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 12px; display: block; color: #64748b;"></i>
+            <p style="margin-bottom: 10px; font-weight: 500;">Camera đang tạm tắt</p>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-primary" onclick="startScanner()"><i class="fas fa-camera"></i> Kích hoạt Camera</button>
+                <button type="button" class="btn btn-sm btn-outline" style="background: rgba(255,255,255,0.1); color: #e2e8f0; border-color: #64748b;" onclick="triggerFileInput()"><i class="fas fa-upload"></i> Chọn file ảnh QR</button>
+            </div>
+        `;
         document.getElementById('textCameraState').textContent = 'Mở Camera';
         document.getElementById('iconCameraState').className = 'fas fa-play';
         document.getElementById('btnToggleCamera').className = 'btn btn-sm btn-primary';
@@ -381,36 +558,40 @@
         }
     }
 
-    async function switchCamera() {
-        if (availableCameras.length > 1) {
-            await stopScanner();
-            currentCameraIndex++;
-            await startScanner();
-        }
-    }
-
-    // Khi quét được mã QR thành công
+    // Khi quét được mã thành công
     let lastScannedCode = '';
     let lastScannedTime = 0;
 
     function onScanSuccess(decodedText, decodedResult) {
         const now = Date.now();
-        // Chống quét liên tục cùng 1 mã trong 2 giây
-        if (decodedText === lastScannedCode && (now - lastScannedTime < 2000)) {
+        // Trích xuất mã sạch (nếu QR chứa URL đầy đủ)
+        let code = decodedText.trim();
+        if (code.includes('/')) {
+            code = code.substring(code.lastIndexOf('/') + 1).trim();
+        }
+        if (code.includes('=')) {
+            code = code.substring(code.lastIndexOf('=') + 1).trim();
+        }
+
+        // Chống quét liên tục cùng 1 mã trong 2.5 giây
+        if (code === lastScannedCode && (now - lastScannedTime < 2500)) {
             return;
         }
-        lastScannedCode = decodedText;
+        lastScannedCode = code;
         lastScannedTime = now;
 
-        // Phát âm thanh beep ngắn nếu có thể
+        // Điền vào ô input để người dùng thấy rõ mã
+        document.getElementById('manualBarcodeInput').value = code;
+
+        // Âm thanh beep
         playBeep();
 
         // Tra cứu bản sách từ backend
-        fetchBookDetails(decodedText);
+        fetchBookDetails(code);
     }
 
     function onScanFailure(error) {
-        // Lỗi khung hình không chứa QR là bình thường, không cần log spam
+        // Khung hình không có mã là bình thường, bỏ qua
     }
 
     function playBeep() {
@@ -420,13 +601,13 @@
             const gain = ctx.createGain();
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.frequency.value = 880; // A5
-            gain.gain.value = 0.1;
+            osc.frequency.value = 900; // Tần số âm thanh
+            gain.gain.value = 0.15;
             osc.start();
             setTimeout(() => {
                 osc.stop();
                 ctx.close();
-            }, 120);
+            }, 100);
         } catch (e) {
         }
     }
@@ -435,10 +616,15 @@
         const input = document.getElementById('manualBarcodeInput');
         const code = input.value.trim();
         if (!code) {
-            showAlert('Vui lòng nhập mã bản sách (Barcode)!', 'error');
+            showAlert('Vui lòng nhập mã bản sách (Barcode / QR)!', 'error');
             input.focus();
             return;
         }
+        fetchBookDetails(code);
+    }
+
+    function testFillBarcode(code) {
+        document.getElementById('manualBarcodeInput').value = code;
         fetchBookDetails(code);
     }
 
@@ -463,7 +649,7 @@
             .catch(err => {
                 document.getElementById('loadingScanState').style.display = 'none';
                 document.getElementById('emptyScanState').style.display = 'block';
-                showAlert('Không tìm thấy thông tin: ' + err.message, 'error');
+                showAlert('Không tìm thấy bản sách: ' + err.message, 'error');
             });
     }
 
@@ -475,6 +661,7 @@
         document.getElementById('resAuthor').textContent = data.author || 'N/A';
         document.getElementById('resCategory').textContent = data.category || 'N/A';
         document.getElementById('resBarcode').textContent = data.barcode;
+        document.getElementById('resLocation').textContent = data.location || 'Kệ A1 - Tầng 1';
 
         const badge = document.getElementById('resStatusBadge');
         if (data.status === 'BORROWED') {
@@ -502,11 +689,17 @@
         } else {
             badge.style.background = '#dcfce7';
             badge.style.color = '#15803d';
-            badge.innerHTML = '<i class="fas fa-check"></i> ' + data.status;
+            badge.innerHTML = '<i class="fas fa-check"></i> ' + (data.status === 'AVAILABLE' ? 'Còn sẵn' : data.status);
             document.getElementById('loanInfoSection').style.display = 'none';
             document.getElementById('notBorrowedNotice').style.display = 'block';
-            document.getElementById('resCurrentStatusText').textContent = data.status;
+            document.getElementById('resCurrentStatusText').textContent = data.status === 'AVAILABLE' ? 'CÒN SẴN' : data.status;
             document.getElementById('actionReturnSection').style.display = 'none';
+
+            // Link tạo phiếu mượn nhanh
+            const createLink = document.getElementById('resCreateLoanLink');
+            if (createLink) {
+                createLink.href = '/admin/loans/new?barcode=' + encodeURIComponent(data.barcode);
+            }
         }
 
         document.getElementById('resultContent').style.display = 'block';
@@ -548,49 +741,55 @@
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận trả sách';
 
-            if (res.success) {
-                showAlert(res.message, 'success');
-                addHistoryRow(res);
-                resetScanState();
-            } else {
-                showAlert('Lỗi trả sách: ' + res.message, 'error');
+            if (!res.success) {
+                showAlert('Lỗi khi trả sách: ' + res.message, 'error');
+                return;
             }
+
+            showAlert('Trả sách thành công: ' + res.title + ' (Mã: ' + res.barcode + ')!', 'success');
+
+            // Thêm dòng vào bảng lịch sử phiên làm việc
+            addHistoryRow(res);
+
+            // Cập nhật lại trạng thái hiển thị
+            fetchBookDetails(barcode);
         })
         .catch(err => {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận trả sách';
-            showAlert('Lỗi hệ thống: ' + err.message, 'error');
+            showAlert('Lỗi kết nối máy chủ: ' + err.message, 'error');
         });
     }
 
-    function addHistoryRow(data) {
+    function addHistoryRow(item) {
         sessionCount++;
         document.getElementById('sessionReturnedCount').textContent = sessionCount + ' cuốn';
 
+        const tbody = document.getElementById('sessionHistoryTableBody');
         const emptyRow = document.getElementById('emptyHistoryRow');
         if (emptyRow) {
             emptyRow.remove();
         }
 
-        const tbody = document.getElementById('sessionHistoryTableBody');
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
         const tr = document.createElement('tr');
-        tr.style.borderBottom = '1px solid #e2e8f0';
-
-        const now = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
+        tr.style.borderBottom = '1px solid #f1f5f9';
         tr.innerHTML = `
-            <td style="padding: 10px 14px; color: #64748b; font-size: 0.85rem;">${now}</td>
-            <td style="padding: 10px 14px; font-weight: 600; font-family: monospace;">${data.barcode}</td>
-            <td style="padding: 10px 14px; font-weight: 500;">${data.title}</td>
-            <td style="padding: 10px 14px;">${data.readerName}</td>
-            <td style="padding: 10px 14px; color: #2563eb; font-weight: 600;">${data.loanCode}</td>
+            <td style="padding: 10px 14px; font-size: 0.85rem; color: #64748b;">${timeStr}</td>
+            <td style="padding: 10px 14px; font-family: monospace; font-weight: 700; color: #1e293b;">${item.barcode}</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0f172a;">${item.title}</td>
+            <td style="padding: 10px 14px; color: #334155;">${item.readerName || 'N/A'}</td>
+            <td style="padding: 10px 14px; font-family: monospace; color: #2563eb;">${item.loanCode || 'N/A'}</td>
             <td style="padding: 10px 14px; text-align: center;">
-                <span class="badge" style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem;">
-                    <i class="fas fa-check"></i> Đã hoàn tất
+                <span class="badge" style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600;">
+                    <i class="fas fa-check"></i> Đã hoàn trả
                 </span>
             </td>
         `;
-        tbody.prepend(tr);
+
+        tbody.insertBefore(tr, tbody.firstChild);
     }
 
     // Tự động giải phóng camera khi rời trang

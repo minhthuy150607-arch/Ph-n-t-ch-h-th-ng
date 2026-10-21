@@ -148,12 +148,12 @@
         </form>
     </div>
 
-    <!-- MODAL QUÉT QR CODE -->
+    <!-- MODAL QUÉT QR & BARCODE -->
     <div id="borrowQrModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 10000; backdrop-filter: blur(4px);">
         <div class="camera-modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
                 <h3 style="margin: 0; font-size: 1.15rem; color: #1e293b;">
-                    <i class="fas fa-qrcode text-primary"></i> Quét Mã QR Bản Sách
+                    <i class="fas fa-qrcode text-primary"></i> Quét Mã QR &amp; Barcode Bản Sách
                 </h3>
                 <button type="button" onclick="closeBorrowScannerModal()" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
             </div>
@@ -161,18 +161,25 @@
             <div id="borrowScanAlert" style="display: none; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; font-weight: 500;"></div>
 
             <!-- Camera Viewport -->
-            <div style="position: relative; border-radius: 12px; overflow: hidden; background: #0f172a;">
-                <div id="borrow-qr-reader"></div>
+            <div style="position: relative; border-radius: 12px; overflow: hidden; background: #0f172a; min-height: 240px; display: flex; align-items: center; justify-content: center;">
+                <div id="borrow-qr-reader" style="width: 100%;"></div>
+                <div id="borrowCameraLoading" style="position: absolute; text-align: center; color: #94a3b8;">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: #38bdf8; margin-bottom: 8px; display: block;"></i>
+                    <span style="font-size: 0.9rem;">Đang kết nối camera...</span>
+                </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
-                <button type="button" id="btnSwitchCameraModal" class="btn btn-sm btn-outline" onclick="switchBorrowCamera()" style="display: none;">
-                    <i class="fas fa-sync-alt"></i> Đổi camera
-                </button>
-                <div style="color: #64748b; font-size: 0.85rem;">
-                    Đưa mã QR trên bản sách vào khung quét
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" id="btnSwitchCameraModal" class="btn btn-sm btn-outline" onclick="switchBorrowCamera()" style="display: none;">
+                        <i class="fas fa-sync-alt"></i> Đổi camera
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('modalFileInput').click()">
+                        <i class="fas fa-file-image"></i> Quét từ ảnh
+                    </button>
+                    <input type="file" id="modalFileInput" accept="image/*" style="display: none;" onchange="handleModalFileScan(event)">
                 </div>
-                <button type="button" class="btn btn-sm btn-outline" onclick="closeBorrowScannerModal()">
+                <button type="button" class="btn btn-sm btn-primary" onclick="closeBorrowScannerModal()">
                     Hoàn tất
                 </button>
             </div>
@@ -189,7 +196,7 @@
     let borrowCameraIndex = 0;
 
     // Set lưu trữ danh sách mã barcode duy nhất đã thêm
-    const selectedCopies = new Map(); // barcode -> object { barcode, title, author, coverImage }
+    const selectedCopies = new Map(); // barcode -> object { barcode, title, author, coverImage, location }
 
     function showFormAlert(message, type) {
         const el = document.getElementById('formAlertMessage');
@@ -222,43 +229,88 @@
         }, 3500);
     }
 
+    function initBorrowScanner() {
+        if (!borrowHtml5QrCode) {
+            let formats = undefined;
+            if (window.Html5QrcodeSupportedFormats) {
+                formats = [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ];
+            }
+            borrowHtml5QrCode = new Html5Qrcode("borrow-qr-reader", {
+                formatsToSupport: formats,
+                verbose: false
+            });
+        }
+    }
+
     // Mở Modal Quét QR
     async function openBorrowScannerModal() {
         document.getElementById('borrowQrModal').style.display = 'block';
         document.getElementById('borrowScanAlert').style.display = 'none';
+        document.getElementById('borrowCameraLoading').style.display = 'block';
+
+        initBorrowScanner();
+
+        const scanConfig = {
+            fps: 15,
+            qrbox: function(w, h) {
+                return { width: Math.floor(Math.min(w * 0.85, 300)), height: Math.floor(Math.min(h * 0.65, 200)) };
+            },
+            aspectRatio: 1.333334
+        };
 
         try {
-            if (!borrowHtml5QrCode) {
-                borrowHtml5QrCode = new Html5Qrcode("borrow-qr-reader");
+            let started = false;
+            try {
+                await borrowHtml5QrCode.start({ facingMode: "environment" }, scanConfig, onBorrowQrSuccess, () => {});
+                started = true;
+            } catch (e1) {
+                await borrowHtml5QrCode.start({ facingMode: "user" }, scanConfig, onBorrowQrSuccess, () => {});
+                started = true;
             }
 
-            const cameras = await Html5Qrcode.getCameras();
-            if (!cameras || cameras.length === 0) {
-                showModalAlert('Không tìm thấy camera trên thiết bị! Vui lòng nhập mã thủ công.', 'error');
-                return;
+            if (started) {
+                isBorrowScanning = true;
+                document.getElementById('borrowCameraLoading').style.display = 'none';
+
+                if (Html5Qrcode && Html5Qrcode.getCameras) {
+                    Html5Qrcode.getCameras().then(cams => {
+                        if (cams && cams.length > 1) {
+                            borrowCameras = cams;
+                            document.getElementById('btnSwitchCameraModal').style.display = 'inline-block';
+                        }
+                    }).catch(() => {});
+                }
             }
-
-            borrowCameras = cameras;
-            if (cameras.length > 1) {
-                document.getElementById('btnSwitchCameraModal').style.display = 'inline-block';
-            }
-
-            const cameraId = cameras[borrowCameraIndex % cameras.length].id;
-            await borrowHtml5QrCode.start(
-                cameraId,
-                {
-                    fps: 10,
-                    qrbox: { width: 220, height: 220 }
-                },
-                onBorrowQrSuccess,
-                () => {}
-            );
-
-            isBorrowScanning = true;
         } catch (err) {
             console.error('Lỗi khởi động camera:', err);
-            showModalAlert('Không thể truy cập camera! Vui lòng kiểm tra quyền truy cập trình duyệt.', 'error');
+            document.getElementById('borrowCameraLoading').style.display = 'none';
+            showModalAlert('Không thể kết nối camera! Vui lòng cấp quyền truy cập trình duyệt hoặc dùng Quét từ ảnh.', 'error');
         }
+    }
+
+    function handleModalFileScan(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        initBorrowScanner();
+        showModalAlert('Đang đọc mã từ ảnh...', 'success');
+        borrowHtml5QrCode.scanFile(file, true)
+            .then(decodedText => {
+                onBorrowQrSuccess(decodedText);
+            })
+            .catch(err => {
+                showModalAlert('Không tìm thấy mã hợp lệ trong ảnh!', 'error');
+            })
+            .finally(() => {
+                e.target.value = '';
+            });
     }
 
     // Đóng Modal Quét QR
@@ -279,7 +331,18 @@
                 isBorrowScanning = false;
             }
             borrowCameraIndex++;
-            openBorrowScannerModal();
+            const cameraId = borrowCameras[borrowCameraIndex % borrowCameras.length].id;
+            try {
+                await borrowHtml5QrCode.start(
+                    cameraId,
+                    { fps: 15, qrbox: { width: 260, height: 180 } },
+                    onBorrowQrSuccess,
+                    () => {}
+                );
+                isBorrowScanning = true;
+            } catch (e) {
+                console.error('Lỗi đổi camera:', e);
+            }
         }
     }
 
@@ -287,14 +350,18 @@
     let lastBorrowScanTime = 0;
 
     function onBorrowQrSuccess(decodedText) {
+        let code = decodedText.trim();
+        if (code.includes('/')) code = code.substring(code.lastIndexOf('/') + 1).trim();
+        if (code.includes('=')) code = code.substring(code.lastIndexOf('=') + 1).trim();
+
         const now = Date.now();
-        if (decodedText === lastBorrowScanCode && (now - lastBorrowScanTime < 2500)) {
+        if (code === lastBorrowScanCode && (now - lastBorrowScanTime < 2500)) {
             return;
         }
-        lastBorrowScanCode = decodedText;
+        lastBorrowScanCode = code;
         lastBorrowScanTime = now;
 
-        validateAndAddCopy(decodedText, true);
+        validateAndAddCopy(code, true);
     }
 
     function addBarcodeFromInput() {
@@ -331,7 +398,8 @@
                         barcode: data.barcode,
                         title: data.title,
                         author: data.author,
-                        coverImage: data.coverImage
+                        coverImage: data.coverImage,
+                        location: data.location
                     });
 
                     renderCopiesList();
@@ -379,8 +447,9 @@
                          style="width: 42px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div>
                         <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${item.title}</div>
-                        <div style="font-size: 0.8rem; color: #64748b;">
+                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
                             TG: ${item.author || 'N/A'} | Mã: <span style="font-family: monospace; font-weight: 700; color: #2563eb;">${item.barcode}</span>
+                            | Vị trí: <span style="font-weight: 600; color: #0284c7;">${item.location || 'Kệ A1 - Tầng 1'}</span>
                         </div>
                     </div>
                 </div>
@@ -409,6 +478,16 @@
 
         return true;
     }
+
+    // Tự động nhận mã barcode từ URL query param nếu có (ví dụ chuyển từ trang Quét QR)
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const barcode = params.get('barcode');
+        if (barcode) {
+            document.getElementById('inputSingleBarcode').value = barcode;
+            validateAndAddCopy(barcode, false);
+        }
+    });
 
     // Đóng khi click ra ngoài modal
     window.addEventListener('click', function(e) {

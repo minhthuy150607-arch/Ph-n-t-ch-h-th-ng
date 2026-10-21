@@ -22,11 +22,14 @@
             <h1 class="books-list-title">Tra Cứu Kho Sách Thư Viện</h1>
             <p class="books-list-desc">Hàng ngàn đầu sách về Công nghệ, Kinh tế, Khoa học, Kỹ năng và Văn học</p>
 
-            <!-- Form tìm kiếm -->
-            <form th:action="@{/client/books}" method="get" class="hero-search-box" style="margin-bottom: 0;">
+            <!-- Form tìm kiếm kết hợp Quét QR / Barcode -->
+            <form th:action="@{/client/books}" method="get" class="hero-search-box" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-search"></i>
-                <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập tên sách, tác giả hoặc thể loại...">
-                <button type="submit" class="btn btn-primary">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập mã sách (BS0001), tên sách, tác giả...">
+                <button type="button" class="btn btn-outline" onclick="openClientQrLookupModal()" style="border-radius: var(--border-radius-full); background: #ffffff; color: #2563eb; font-weight: 600; white-space: nowrap; border: 1px solid #bfdbfe;" title="Quét mã QR hoặc Barcode">
+                    <i class="fas fa-camera"></i> <span>Quét QR</span>
+                </button>
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
                     <i class="fas fa-search"></i> <span>Tìm kiếm</span>
                 </button>
             </form>

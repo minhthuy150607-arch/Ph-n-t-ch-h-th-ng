@@ -14,6 +14,7 @@ public class BookCopyScanDto {
     // Thông tin bản sách
     private Long copyId;
     private String barcode;
+    private String location;
     private String status;       // AVAILABLE, BORROWED, RESERVED, LOST, DAMAGED
     private String condition;    // GOOD, FAIR, POOR
     private String notes;
