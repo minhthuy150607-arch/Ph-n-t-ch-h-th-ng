@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Trang chủ - Thư Viện Số</title>
+</head>
+<body>
+    <div layout:fragment="content">
+
+        <!-- ===== HERO SECTION (Vibrant Digital Library) ===== -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <!-- Badge Pill -->
+                <div class="hero-badge">
+                    <i class="fas fa-sparkles"></i>
+                    <span>Nền Tảng Thư Viện Số Thông Minh 4.0</span>
+                </div>
+
+                <!-- Headline -->
+                <h1>Khám Phá Tri Thức, <br><span class="text-gradient">Mở Lối Tương Lai</span></h1>
+                <p class="hero-subtitle">
+                    Hệ thống tra cứu thông minh, đặt trước và mượn trả trực tuyến nhanh chóng. Kho tài liệu phong phú phục vụ nhu cầu học tập và nghiên cứu của bạn.
+                </p>
+
+                <!-- Integrated Quick Search Box in Hero -->
+                <form th:action="@{/client/books}" method="get" class="hero-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="keyword" placeholder="Tìm tên sách, tác giả, thể loại...">
+                    <button type="submit" class="btn btn-primary">
+                        <span>Tra cứu</span> <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Quick Category Tags -->
+                <div class="hero-quick-tags">
+                    <span><i class="fas fa-fire-alt" style="color: #f59e0b; margin-right: 4px;"></i> Xu hướng:</span>
+                    <a th:href="@{/client/books(keyword='Công nghệ')}" class="hero-tag-link">#Công nghệ thông tin</a>
+                    <a th:href="@{/client/books(keyword='Kinh tế')}" class="hero-tag-link">#Kinh tế & Quản trị</a>
+                    <a th:href="@{/client/books(keyword='Kỹ năng')}" class="hero-tag-link">#Kỹ năng sống</a>
+                    <a th:href="@{/client/books(keyword='Văn học')}" class="hero-tag-link">#Văn học</a>
+                </div>
+
+                <!-- 3 Floating Highlight Feature Chips -->
+                <div class="hero-highlights">
+                    <div class="hero-chip">
+                        <div class="hero-chip-icon">
+                            <i class="fas fa-bolt" style="color: #38bdf8;"></i>
+                        </div>
+                        <div>
+                            <div class="hero-chip-title">Mượn Online Siêu Tốc</div>
+                            <div class="hero-chip-desc">Giữ sách online 14 ngày</div>
+                        </div>
+                    </div>
+                    <div class="hero-chip">
+                        <div class="hero-chip-icon">
+                            <i class="fas fa-book-reader" style="color: #34d399;"></i>
+                        </div>
+                        <div>
+                            <div class="hero-chip-title">Kho Sách Phong Phú</div>
+                            <div class="hero-chip-desc">Hàng ngàn đầu sách chuẩn</div>
+                        </div>
+                    </div>
+                    <div class="hero-chip">
+                        <div class="hero-chip-icon">
+                            <i class="fas fa-clock" style="color: #fbbf24;"></i>
+                        </div>
+                        <div>
+                            <div class="hero-chip-title">Theo Dõi 24/7</div>
+                            <div class="hero-chip-desc">Nhắc hạn & gia hạn tức thì</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decorative floating blur shapes -->
+            <div class="hero-decoration">
+                <div class="hero-shape shape-1"></div>
+                <div class="hero-shape shape-2"></div>
+                <div class="hero-shape shape-3"></div>
+            </div>
+        </section>
+
+        <!-- ===== FEATURED BOOKS SECTION ===== -->
+        <section th:if="${featuredBooks != null and !#lists.isEmpty(featuredBooks)}" class="features-section" style="padding-top: 60px; padding-bottom: 40px;">
+            <div class="section-header">
+                <span class="section-tag">Bộ Sưu Tập Mới</span>
+                <h2>Sách Nổi Bật Được Quan Tâm</h2>
+                <p>Khám phá các đầu sách mới được độc giả mượn đọc và đánh giá cao nhất</p>
+            </div>
+
+            <div class="book-grid">
+                <div th:each="book : ${featuredBooks}" class="book-card">
+                    <!-- Bìa sách -->
+                    <div class="book-card-cover">
+                        <img th:if="${book.coverImage}" th:src="${book.coverImage}" onerror="this.src='/images/cover-default.svg'" th:alt="${book.title}">
+                        <div th:unless="${book.coverImage}" class="book-card-cover-fallback">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <!-- Badge thể loại -->
+                        <span class="book-category-badge" th:text="${book.category}">Thể loại</span>
+                    </div>
+
+                    <!-- Nội dung tóm tắt -->
+                    <div class="book-card-body">
+                        <div>
+                            <h3 class="book-card-title" th:text="${book.title}">Tiêu đề sách</h3>
+                            <p class="book-card-author">
+                                <i class="fas fa-pen-nib"></i> <span th:text="${book.author}">Tác giả</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <!-- Tình trạng sách -->
+                            <div class="book-card-meta">
+                                <div class="status-pill">
+                                    <span th:if="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #059669;">
+                                        <span class="status-dot available"></span> Còn <strong th:text="${book.availableCopiesCount}">3</strong> bản
+                                    </span>
+                                    <span th:unless="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #dc2626;">
+                                        <span class="status-dot unavailable"></span> Tạm hết
+                                    </span>
+                                </div>
+                                <span style="color: #94a3b8; font-weight: 500;" th:text="${book.publishYear}">2023</span>
+                            </div>
+
+                            <!-- Hành động -->
+                            <div class="book-card-actions">
+                                <a th:href="@{/client/books/{id}(id=${book.id})}" class="btn btn-sm btn-outline" style="flex: 1;">
+                                    <i class="fas fa-info-circle"></i> Chi tiết
+                                </a>
+                                <form th:if="${book.availableCopiesCount > 0}" th:action="@{/reader/borrow/{bookId}(bookId=${book.id})}" method="post" sec:authorize="hasRole('READER')" style="flex: 1;">
+                                    <button type="submit" class="btn btn-sm btn-success" style="width: 100%;" onclick="return confirm('Xác nhận mượn online cuốn sách này?');">
+                                        <i class="fas fa-bolt"></i> Mượn
+                                    </button>
+                                </form>
+                                <form th:unless="${book.availableCopiesCount > 0}" th:action="@{/reader/reserve/{bookId}(bookId=${book.id})}" method="post" sec:authorize="hasRole('READER')" style="flex: 1;">
+                                    <button type="submit" class="btn btn-sm btn-primary" style="width: 100%;" onclick="return confirm('Đặt trước cuốn sách này?');">
+                                        <i class="fas fa-bookmark"></i> Đặt
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 10px;">
+                <a th:href="@{/client/books}" class="btn btn-primary btn-lg">
+                    <span>Xem toàn bộ kho sách</span> <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== SERVICES / FEATURES SECTION ===== -->
+        <section class="features-section">
+            <div class="section-header">
+                <span class="section-tag">Tiện Ích Số</span>
+                <h2>Dịch Vụ Dành Cho Độc Giả</h2>
+                <p>Nâng cao trải nghiệm đọc với đầy đủ các công cụ tương tác trực tuyến 24/7</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon icon-blue">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Tra Cứu Kho Sách</h3>
+                    <p>Bộ lọc đa tiêu chí theo tên sách, tác giả, thể loại hoặc mã số với độ chính xác cao và thông tin tức thì.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon icon-green">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Mượn &amp; Đặt Trước Online</h3>
+                    <p>Giữ bản sao sách online chỉ với một chạm. Hệ thống tự động ưu tiên giữ sách ngay khi có người đọc trả.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon icon-purple">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>Theo Dõi Mượn Trả</h3>
+                    <p>Kiểm tra thời hạn mượn, cảnh báo trước khi quá hạn và gửi yêu cầu gia hạn online nhanh chóng.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon icon-orange">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <h3>Thẻ Bạn Đọc Điện Tử</h3>
+                    <p>Đăng ký tài khoản dễ dàng, quản lý hoạt động đọc cá nhân và lịch sử nghiên cứu mọi lúc mọi nơi.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== STATS SECTION ===== -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" th:text="${totalBooks != null ? totalBooks : 8}">8</span>
+                        <span class="stat-label">Đầu sách tuyển chọn</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-copy"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" th:text="${totalCopies != null ? totalCopies : 24}">24</span>
+                        <span class="stat-label">Bản sách sẵn sàng</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" th:text="${totalReaders != null ? totalReaders : 2}">2</span>
+                        <span class="stat-label">Độc giả tin dùng</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Dịch vụ trực tuyến</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== HOW IT WORKS ===== -->
+        <section class="howto-section">
+            <div class="section-header">
+                <span class="section-tag">Đơn Giản &amp; Nhanh Chóng</span>
+                <h2>Quy Trình Mượn Sách 3 Bước</h2>
+                <p>Chỉ với vài thao tác cơ bản để sở hữu cuốn sách bạn yêu thích</p>
+            </div>
+            <div class="howto-steps">
+                <div class="howto-step">
+                    <div class="step-number">1</div>
+                    <h3>Tra Cứu Trực Tuyến</h3>
+                    <p>Tìm cuốn sách mong muốn qua công cụ tìm kiếm và kiểm tra số lượng bản sao còn sẵn sàng.</p>
+                </div>
+                <div class="howto-connector"><i class="fas fa-arrow-right"></i></div>
+                <div class="howto-step">
+                    <div class="step-number">2</div>
+                    <h3>Đặt Giữ Sách</h3>
+                    <p>Bấm mượn online hoặc đặt trước sách, hệ thống sẽ tự động gán bản sách dành riêng cho bạn.</p>
+                </div>
+                <div class="howto-connector"><i class="fas fa-arrow-right"></i></div>
+                <div class="howto-step">
+                    <div class="step-number">3</div>
+                    <h3>Nhận Sách &amp; Thưởng Thức</h3>
+                    <p>Nhận sách tại quầy thủ thư hoặc đọc tài liệu theo thời hạn được cấp với tính năng gia hạn online.</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

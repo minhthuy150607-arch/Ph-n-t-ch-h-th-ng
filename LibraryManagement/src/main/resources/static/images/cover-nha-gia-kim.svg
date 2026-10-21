@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+  <defs>
+    <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#78350f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#b45309;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="560" fill="url(#grad5)"/>
+  <!-- Sun & Pyramid -->
+  <circle cx="200" cy="180" r="45" fill="#fef3c7"/>
+  <polygon points="120,240 200,150 280,240" fill="#fde68a" opacity="0.7"/>
+
+  <text x="200" y="80" text-anchor="middle" fill="#fde68a" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="3">KIỆT TÁC VĂN HỌC THẾ GIỚI</text>
+  <text x="200" y="340" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="800">NHÀ GIẢ KIM</text>
+  <text x="200" y="375" text-anchor="middle" fill="#fde68a" font-family="'Segoe UI', Roboto, sans-serif" font-size="14">The Alchemist</text>
+  
+  <line x1="80" y1="415" x2="320" y2="415" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <text x="200" y="460" text-anchor="middle" fill="#fef3c7" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600">Paulo Coelho</text>
+</svg>

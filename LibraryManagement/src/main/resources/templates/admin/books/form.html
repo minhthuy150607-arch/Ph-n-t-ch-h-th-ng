@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      lang="vi">
+<head>
+    <title th:text="${pageTitle}">Thêm / Sửa Sách</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title" th:text="${book.id != null} ? 'Chỉnh sửa Sách' : 'Thêm Sách Mới'">Thêm Sách Mới</h1>
+            <p class="page-subtitle">Nhập thông tin chi tiết đầu sách</p>
+        </div>
+        <div class="page-header-right">
+            <a th:href="@{/admin/books}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-card" style="max-width: 800px; margin: 0 auto; padding: 24px;">
+        <form th:action="${book.id != null} ? @{/admin/books/edit/{id}(id=${book.id})} : @{/admin/books/new}"
+              th:object="${book}" method="post" enctype="multipart/form-data">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="grid-column: span 2;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Tên sách <span style="color: red;">*</span></label>
+                    <input type="text" th:field="*{title}" required class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: Lập trình Java căn bản">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Mã sách (Tự sinh nếu để trống)</label>
+                    <input type="text" th:field="*{bookCode}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: BK-001">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Tác giả <span style="color: red;">*</span></label>
+                    <input type="text" th:field="*{author}" required class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: Robert C. Martin">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Thể loại</label>
+                    <input type="text" th:field="*{category}" list="categoriesList" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Chọn hoặc nhập thể loại mới">
+                    <datalist id="categoriesList">
+                        <option th:each="cat : ${categories}" th:value="${cat}"></option>
+                    </datalist>
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Nhà xuất bản</label>
+                    <input type="text" th:field="*{publisher}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: NXB Trẻ">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Năm xuất bản</label>
+                    <input type="number" th:field="*{publishYear}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="2024">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Trạng thái</label>
+                    <select th:field="*{status}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <option value="ACTIVE">Kích hoạt (Cho phép mượn)</option>
+                        <option value="INACTIVE">Tạm ngưng</option>
+                    </select>
+                </div>
+
+                <div style="grid-column: span 2;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Tải ảnh bìa từ máy tính</label>
+                    <input type="file" name="coverFile" accept="image/*" class="form-control" style="width: 100%; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: white;">
+                    <small style="color: #64748b; display: block; margin-top: 4px;">Chọn file ảnh (JPG, PNG, SVG) từ máy tính của bạn.</small>
+                </div>
+
+                <div style="grid-column: span 2;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Hoặc nhập Link ảnh bìa (URL)</label>
+                    <input type="text" th:field="*{coverImage}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: /images/cover-clean-code.svg hoặc https://...">
+                </div>
+
+                <div style="grid-column: span 2;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Mô tả tóm tắt</label>
+                    <textarea th:field="*{description}" rows="4" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Tóm tắt nội dung sách..."></textarea>
+                </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                <a th:href="@{/admin/books}" class="btn btn-outline">Hủy bỏ</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu thông tin
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

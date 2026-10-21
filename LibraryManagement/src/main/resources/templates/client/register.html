@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Đăng ký Tài khoản Bạn đọc - Thư Viện Số</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="login-container">
+        <div class="login-card" style="max-width: 520px; padding: 36px 36px;">
+            <div class="login-header" style="margin-bottom: 24px;">
+                <div class="login-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h1 style="font-size: 1.6rem;">Đăng Ký Tài Khoản</h1>
+                <p>Trở thành bạn đọc thư viện để mượn và đặt trước sách trực tuyến</p>
+            </div>
+
+            <!-- Thông báo lỗi -->
+            <div th:if="${errorMessage}" class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <form th:action="@{/register}" th:object="${registerDto}" method="post">
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-user"></i> Tên đăng nhập <span style="color: var(--color-danger);">*</span>
+                    </label>
+                    <input type="text" th:field="*{username}" required class="form-control" placeholder="Ví dụ: nva_reader">
+                    <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="error-message"></small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-id-card"></i> Họ và tên độc giả <span style="color: var(--color-danger);">*</span>
+                    </label>
+                    <input type="text" th:field="*{fullName}" required class="form-control" placeholder="Ví dụ: Nguyễn Văn A">
+                    <small th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="error-message"></small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" th:field="*{email}" class="form-control" placeholder="example@email.com">
+                        <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-message"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-phone"></i> Số điện thoại
+                        </label>
+                        <input type="tel" th:field="*{phone}" class="form-control" placeholder="0912345678">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-lock"></i> Mật khẩu <span style="color: var(--color-danger);">*</span>
+                        </label>
+                        <input type="password" th:field="*{password}" required class="form-control" placeholder="Tối thiểu 6 ký tự">
+                        <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-message"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-check-double"></i> Nhập lại mật khẩu <span style="color: var(--color-danger);">*</span>
+                        </label>
+                        <input type="password" th:field="*{confirmPassword}" required class="form-control" placeholder="Xác nhận mật khẩu">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="padding: 13px; font-size: 15px; margin-top: 8px;">
+                    <i class="fas fa-check-circle"></i> Đăng Ký Tài Khoản Mới
+                </button>
+            </form>
+
+            <div class="login-footer" style="border-top: 1px solid var(--border-color-subtle); padding-top: 18px; margin-top: 24px;">
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                    Đã có tài khoản bạn đọc?
+                    <a th:href="@{/login}" style="color: var(--color-accent); font-weight: 700;">Đăng nhập ngay &rarr;</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

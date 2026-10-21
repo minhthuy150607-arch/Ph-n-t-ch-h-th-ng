@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+  <defs>
+    <linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c2410c;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ea580c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f97316;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="560" fill="url(#grad6)"/>
+  <circle cx="200" cy="200" r="50" fill="none" stroke="#ffedd5" stroke-width="4"/>
+  <path d="M 180 200 L 220 200 M 200 180 L 200 220" stroke="#ffedd5" stroke-width="4" stroke-linecap="round"/>
+
+  <text x="200" y="80" text-anchor="middle" fill="#fed7aa" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="3">SÁCH KỸ NĂNG &amp; TRƯỞNG THÀNH</text>
+  <text x="200" y="325" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="800">TUỔI TRẺ ĐÁNG GIÁ</text>
+  <text x="200" y="360" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="800">BAO NHIÊU?</text>
+  
+  <line x1="80" y1="415" x2="320" y2="415" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <text x="200" y="460" text-anchor="middle" fill="#ffedd5" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600">Rosie Nguyễn</text>
+</svg>

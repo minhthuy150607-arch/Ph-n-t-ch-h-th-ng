@@ -1,0 +1,43 @@
+# === Build output ===
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# === IDE ===
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Maven ===
+mvnw.cmd
+mvnw
+.mvn/
+
+# === Logs ===
+*.log
+logs/
+
+# === Environment ===
+.env
+*.env
+
+# === Compiled ===
+*.class
+*.jar
+*.war
+
+# === Deploy (contains secrets) ===
+deploy.js

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Sách Đang Mượn Của Tôi - Thư Viện Số</title>
+</head>
+<body>
+<div layout:fragment="content" style="max-width: 1240px; margin: 0 auto; padding: 24px 24px 60px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <span class="badge badge-info" style="margin-bottom: 8px;">
+                <i class="fas fa-clipboard-list"></i> Quản Lý Mượn Trả
+            </span>
+            <h1 style="font-size: 2rem; margin: 0 0 6px 0; color: var(--text-primary);">Sách Đang Mượn Của Tôi</h1>
+            <p style="color: var(--text-secondary); margin: 0;">Theo dõi danh sách các đầu sách bạn đang mượn, hạn trả và gia hạn trực tuyến</p>
+        </div>
+        <div>
+            <a th:href="@{/client/books}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Mượn thêm sách online
+            </a>
+        </div>
+    </div>
+
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Mã phiếu</th>
+                <th>Tên sách</th>
+                <th>Mã vạch</th>
+                <th>Hạn trả</th>
+                <th style="text-align: center;">Trạng thái</th>
+                <th style="text-align: center;">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${loanDetails}">
+                <td>
+                    <div style="font-weight: 700; color: var(--color-accent); font-family: monospace;" th:text="${d.loan.loanCode}">LN-001</div>
+                    <span th:if="${#strings.startsWith(d.loan.loanCode, 'ONL-')}" class="badge badge-success" style="font-size: 0.72rem; margin-top: 4px;">
+                        <i class="fas fa-bolt"></i> Mượn Online
+                    </span>
+                </td>
+                <td>
+                    <a th:href="@{/client/books/{id}(id=${d.bookCopy.book.id})}" style="font-weight: 700; color: var(--text-primary);" th:text="${d.bookCopy.book.title}">Tên sách</a>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;" th:text="'Tác giả: ' + ${d.bookCopy.book.author}"></div>
+                </td>
+                <td style="font-family: monospace; color: var(--text-secondary); font-weight: 600;" th:text="${d.bookCopy.barcode}">BC-001</td>
+                <td>
+                    <div style="font-weight: 700;" th:text="${d.currentDueDate}">2025-01-15</div>
+                    <span th:if="${d.isOverdue()}" class="badge badge-danger" style="margin-top: 4px;">
+                        <i class="fas fa-exclamation-triangle"></i> Quá hạn <span th:text="${d.getOverdueDays()}"></span> ngày
+                    </span>
+                    <div th:if="${d.renewalCount > 0}" style="font-size: 0.78rem; color: var(--color-accent); margin-top: 3px; font-weight: 600;">
+                        <i class="fas fa-clock"></i> Đã gia hạn <span th:text="${d.renewalCount}">1</span>/2 lần
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <span th:if="${d.status == 'BORROWING'}" class="badge badge-info">
+                        <i class="fas fa-clock"></i> Đang mượn
+                    </span>
+                    <span th:if="${d.status == 'RETURNED'}" class="badge badge-success">
+                        <i class="fas fa-check"></i> Đã trả (<span th:text="${d.returnDate}"></span>)
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <div th:if="${d.status == 'BORROWING'}">
+                        <!-- Nút gia hạn online nếu chưa hết lượt và chưa quá hạn -->
+                        <form th:if="${d.renewalCount < 2 and !d.isOverdue()}" th:action="@{/reader/loans/renew/{id}(id=${d.id})}" method="post" style="display: inline-block;">
+                            <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Bạn có muốn gia hạn cuốn sách này thêm 7 ngày?');">
+                                <i class="fas fa-sync-alt"></i> Gia hạn (<span th:text="${d.renewalCount}">0</span>/2)
+                            </button>
+                        </form>
+                        <span th:if="${d.renewalCount >= 2}" class="badge badge-secondary">Hết lượt gia hạn</span>
+                        <span th:if="${d.isOverdue()}" class="badge badge-danger">Cần trả tại quầy</span>
+                    </div>
+                    <span th:if="${d.status == 'RETURNED'}" class="badge badge-success">
+                        <i class="fas fa-check-circle"></i> Đã hoàn tất
+                    </span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(loanDetails)}">
+                <td colspan="6">
+                    <div class="empty-state">
+                        <i class="fas fa-book-reader"></i>
+                        <p>Bạn hiện chưa có cuốn sách nào đang mượn</p>
+                        <span class="empty-hint">Hãy khám phá kho sách và trải nghiệm tính năng mượn sách online 30s!</span>
+                        <div style="margin-top: 18px;">
+                            <a th:href="@{/client/books}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Khám phá kho sách ngay
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

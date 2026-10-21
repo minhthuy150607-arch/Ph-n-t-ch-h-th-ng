@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/admin-layout}"
+      lang="vi">
+<head>
+    <title>Tổng quan - Bảng Điều Khiển Quản Trị</title>
+</head>
+<body>
+    <div layout:fragment="content">
+
+        <!-- Tiêu đề trang & Quick Actions -->
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1 class="page-title">Bảng Điều Khiển Tổng Quan</h1>
+                <p class="page-subtitle">Hệ thống giám sát chỉ số kho sách, hoạt động mượn trả và bạn đọc</p>
+            </div>
+            <div class="page-header-right">
+                <a th:href="@{/admin/loans/new}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Tạo phiếu mượn
+                </a>
+                <a th:href="@{/admin/books/new}" class="btn btn-outline">
+                    <i class="fas fa-book"></i> Thêm sách mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Cảnh báo quá hạn nếu có -->
+        <div th:if="${overdueCount != null and overdueCount > 0}" style="margin-bottom: 24px; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1.5px solid #fecaca; border-left: 5px solid #ef4444; border-radius: var(--border-radius-lg); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #ef4444; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; color: #991b1b; font-size: 1.05rem;">Cảnh báo sách mượn quá hạn!</h4>
+                    <p style="margin: 2px 0 0 0; color: #b91c1c; font-size: 0.9rem;">
+                        Hiện có <strong th:text="${overdueCount}">1</strong> cuốn sách đã vượt quá thời hạn quy định cần thu hồi hoặc tính phí phạt.
+                    </p>
+                </div>
+            </div>
+            <a th:href="@{/admin/overdue}" class="btn btn-danger" style="border-radius: var(--border-radius-full);">
+                <i class="fas fa-arrow-right"></i> Xem danh sách &amp; Xử lý ngay
+            </a>
+        </div>
+
+        <!-- ===== THẺ THỐNG KÊ (4 Stat Cards) ===== -->
+        <div class="stats-cards">
+            <!-- Thẻ 1: Đầu sách -->
+            <div class="stat-card stat-card-blue">
+                <div>
+                    <div class="stat-card-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <span class="stat-card-label">Tổng số đầu sách</span>
+                    <span class="stat-card-value" th:text="${totalBooks != null} ? ${totalBooks} : '8'">8</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                    <span class="badge badge-info" style="font-size: 0.75rem;">
+                        <i class="fas fa-check"></i> Đang hoạt động
+                    </span>
+                    <a th:href="@{/admin/books}" class="stat-card-link" style="margin-top: 0;">
+                        Quản lý <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thẻ 2: Bản sách -->
+            <div class="stat-card stat-card-green">
+                <div>
+                    <div class="stat-card-icon">
+                        <i class="fas fa-copy"></i>
+                    </div>
+                    <span class="stat-card-label">Tổng số bản sao</span>
+                    <span class="stat-card-value" th:text="${totalCopies != null} ? ${totalCopies} : '24'">24</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                    <span class="badge badge-success" style="font-size: 0.75rem;">
+                        <i class="fas fa-barcode"></i> Đã dán mã vạch
+                    </span>
+                    <a th:href="@{/admin/books}" class="stat-card-link" style="margin-top: 0;">
+                        Xem kho <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thẻ 3: Bạn đọc -->
+            <div class="stat-card stat-card-yellow">
+                <div>
+                    <div class="stat-card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="stat-card-label">Độc giả đăng ký</span>
+                    <span class="stat-card-value" th:text="${totalReaders != null} ? ${totalReaders} : '2'">2</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                    <span class="badge badge-warning" style="font-size: 0.75rem;">
+                        <i class="fas fa-id-card"></i> Thẻ hợp lệ
+                    </span>
+                    <a th:href="@{/admin/readers}" class="stat-card-link" style="margin-top: 0;">
+                        Hồ sơ <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thẻ 4: Đang mượn -->
+            <div class="stat-card stat-card-purple">
+                <div>
+                    <div class="stat-card-icon">
+                        <i class="fas fa-hand-holding"></i>
+                    </div>
+                    <span class="stat-card-label">Sách đang lưu hành</span>
+                    <span class="stat-card-value" th:text="${totalBorrowing != null} ? ${totalBorrowing} : '0'">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                    <span class="badge" style="background: #f5f3ff; color: #7c3aed; font-size: 0.75rem;">
+                        <i class="fas fa-clock"></i> Đang đọc
+                    </span>
+                    <a th:href="@{/admin/loans}" class="stat-card-link" style="margin-top: 0;">
+                        Chi tiết <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== BIỂU ĐỒ THỐNG KÊ (Charts) ===== -->
+        <div class="dashboard-grid">
+            <!-- Biểu đồ mượn sách theo tháng -->
+            <div class="dashboard-card chart-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-column"></i> Thống Kê Lượt Mượn Sách Theo Tháng</h3>
+                    <span class="badge badge-info">Năm 2025</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="loanChart" style="max-height: 280px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Biểu đồ thể loại sách -->
+            <div class="dashboard-card chart-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-pie"></i> Cơ Cấu Thể Loại Sách</h3>
+                    <span class="badge badge-secondary">Tỷ lệ %</span>
+                </div>
+                <div class="card-body chart-body-pie">
+                    <canvas id="categoryChart" style="max-height: 260px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HOẠT ĐỘNG GẦN ĐÂY VÀ TRUY CẬP NHANH ===== -->
+        <div class="dashboard-grid">
+            <!-- Truy cập nhanh -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-bolt"></i> Thao Tác Nghiệp Vụ Nhanh</h3>
+                </div>
+                <div class="card-body quick-actions-grid">
+                    <a th:href="@{/admin/loans/new}" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius); color: var(--text-primary); transition: all var(--transition-fast);">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem;">Tạo Phiếu Mượn</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Mượn tại quầy thủ thư</div>
+                        </div>
+                    </a>
+
+                    <a th:href="@{/admin/loans/quick-return}" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius); color: var(--text-primary); transition: all var(--transition-fast);">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem;">Trả Sách Siêu Tốc</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Quét mã vạch / QR</div>
+                        </div>
+                    </a>
+
+                    <a th:href="@{/admin/books/new}" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius); color: var(--text-primary); transition: all var(--transition-fast);">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #f5f3ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fas fa-book-medical"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem;">Thêm Đầu Sách</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Nhập sách mới vào kho</div>
+                        </div>
+                    </a>
+
+                    <a th:href="@{/admin/readers/new}" style="display: flex; align-items: center; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius); color: var(--text-primary); transition: all var(--transition-fast);">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem;">Cấp Thẻ Độc Giả</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Đăng ký độc giả mới</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cảnh báo & Trạng thái hệ thống -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shield-alt"></i> Tình Trạng Hệ Thống</h3>
+                    <span class="badge badge-success">Online 24/7</span>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                            <span style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                                <i class="fas fa-server" style="color: #3b82f6;"></i> Máy chủ cơ sở dữ liệu
+                            </span>
+                            <span class="badge badge-success">Ổn định</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                            <span style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                                <i class="fas fa-cloud-upload-alt" style="color: #10b981;"></i> Mượn sách trực tuyến
+                            </span>
+                            <span class="badge badge-success">Đang mở</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                            <span style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                                <i class="fas fa-shield-virus" style="color: #8b5cf6;"></i> Bảo mật &amp; Phân quyền
+                            </span>
+                            <span class="badge badge-info">Spring Security 6</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script khởi tạo biểu đồ sống động bằng Chart.js -->
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Biểu đồ mượn sách theo tháng
+                const ctxLoan = document.getElementById('loanChart');
+                if (ctxLoan) {
+                    new Chart(ctxLoan, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10'],
+                            datasets: [{
+                                label: 'Lượt mượn sách',
+                                data: [14, 22, 18, 28, 25, 36],
+                                backgroundColor: '#6366f1',
+                                hoverBackgroundColor: '#4f46e5',
+                                borderRadius: 8,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#0f172a',
+                                    titleFont: { family: 'Plus Jakarta Sans', weight: 'bold' },
+                                    bodyFont: { family: 'Plus Jakarta Sans' },
+                                    padding: 12,
+                                    cornerRadius: 8
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#f1f5f9' },
+                                    ticks: { font: { family: 'Plus Jakarta Sans' } }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { font: { family: 'Plus Jakarta Sans' } }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Biểu đồ thể loại sách
+                const ctxCat = document.getElementById('categoryChart');
+                if (ctxCat) {
+                    new Chart(ctxCat, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Công nghệ thông tin', 'Kinh tế & Quản trị', 'Kỹ năng sống', 'Văn học'],
+                            datasets: [{
+                                data: [4, 2, 2, 1],
+                                backgroundColor: ['#6366f1', '#06b6d4', '#10b981', '#f59e0b'],
+                                borderWidth: 3,
+                                borderColor: '#ffffff',
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 16,
+                                        usePointStyle: true,
+                                        font: { family: 'Plus Jakarta Sans', weight: '600' }
+                                    }
+                                }
+                            },
+                            cutout: '65%'
+                        }
+                    });
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html>

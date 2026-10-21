@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+  <defs>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#881337;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#be123c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e11d48;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="560" fill="url(#grad4)"/>
+  <circle cx="200" cy="200" r="70" fill="none" stroke="#fecdd3" stroke-width="2"/>
+  <path d="M 200 170 C 180 140, 140 160, 170 200 L 200 230 L 230 200 C 260 160, 220 140, 200 170 Z" fill="#ffe4e6"/>
+
+  <text x="200" y="80" text-anchor="middle" fill="#fecdd3" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="3">NGHỆ THUẬT GIAO TIẾP</text>
+  <text x="200" y="340" text-anchor="middle" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="800">ĐẮC NHÂN TÂM</text>
+  <text x="200" y="375" text-anchor="middle" fill="#fda4af" font-family="'Segoe UI', Roboto, sans-serif" font-size="14">How to Win Friends &amp; Influence People</text>
+  
+  <line x1="80" y1="415" x2="320" y2="415" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <text x="200" y="460" text-anchor="middle" fill="#fff1f2" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600">Dale Carnegie</text>
+</svg>

@@ -1,0 +1,29 @@
+package com.library.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class RegisterDto {
+
+    @NotBlank(message = "Tên đăng nhập không được để trống")
+    @Size(min = 3, max = 50, message = "Tên đăng nhập từ 3 đến 50 ký tự")
+    private String username;
+
+    @NotBlank(message = "Mật khẩu không được để trống")
+    @Size(min = 6, message = "Mật khẩu tối thiểu 6 ký tự")
+    private String password;
+
+    @NotBlank(message = "Vui lòng xác nhận lại mật khẩu")
+    private String confirmPassword;
+
+    @NotBlank(message = "Họ và tên không được để trống")
+    private String fullName;
+
+    @Email(message = "Email không hợp lệ")
+    private String email;
+
+    private String phone;
+}

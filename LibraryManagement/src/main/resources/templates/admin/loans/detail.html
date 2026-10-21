@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      lang="vi">
+<head>
+    <title th:text="'Phiếu mượn: ' + ${loan.loanCode}">Chi tiết Phiếu mượn</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title">Phiếu Mượn: <span th:text="${loan.loanCode}"></span></h1>
+            <p class="page-subtitle">Ngày tạo: <span th:text="${loan.loanDate}"></span> | Hạn trả gốc: <span th:text="${loan.dueDate}"></span></p>
+        </div>
+        <div class="page-header-right" style="display: flex; gap: 10px;">
+            <a th:href="@{/admin/loans/quick-return}" class="btn btn-outline" style="border-color: #2563eb; color: #2563eb;">
+                <i class="fas fa-qrcode"></i> Quét QR Trả sách
+            </a>
+            <a th:href="@{/admin/loans}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Danh sách phiếu
+            </a>
+        </div>
+    </div>
+
+    <!-- Thông báo Flash message -->
+    <div th:if="${successMessage}" class="alert alert-success" style="padding: 12px 16px; background: #e8f5e9; color: #2e7d32; border-radius: 8px; margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger" style="padding: 12px 16px; background: #ffebee; color: #c62828; border-radius: 8px; margin-bottom: 20px;">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Thông tin người mượn -->
+    <div class="dashboard-card" style="padding: 20px; margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <div>
+                <strong style="color: #64748b; font-size: 0.85rem; display: block;">BẠN ĐỌC</strong>
+                <span style="font-size: 1.1rem; font-weight: 600;" th:text="${loan.user.fullName}">Nguyễn Văn An</span>
+                <div style="color: #475569; font-size: 0.9rem;" th:text="'Mã: ' + ${loan.user.readerCode} + ' | SĐT: ' + (${loan.user.phone} ?: 'N/A')"></div>
+            </div>
+            <div>
+                <strong style="color: #64748b; font-size: 0.85rem; display: block;">THỦ THƯ LẬP PHIẾU</strong>
+                <span style="font-size: 1.1rem; font-weight: 500;" th:text="${loan.librarian != null ? loan.librarian.fullName : 'Hệ thống'}">Admin</span>
+            </div>
+            <div>
+                <strong style="color: #64748b; font-size: 0.85rem; display: block;">TRẠNG THÁI PHIẾU</strong>
+                <span th:if="${loan.status == 'BORROWING'}" class="badge" style="background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 12px; font-weight: 600;">Đang mượn</span>
+                <span th:if="${loan.status == 'RETURNED'}" class="badge" style="background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 12px; font-weight: 600;">Đã trả đủ</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách các cuốn sách trong phiếu -->
+    <div class="dashboard-card" style="padding: 24px;">
+        <h3 style="margin-top: 0; margin-bottom: 16px; color: #1e293b;"><i class="fas fa-books"></i> Các bản sách trong phiếu</h3>
+        <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                <th style="padding: 12px 16px;">Mã Barcode</th>
+                <th style="padding: 12px 16px;">Tên sách</th>
+                <th style="padding: 12px 16px;">Hạn trả hiện tại</th>
+                <th style="padding: 12px 16px; text-align: center;">Đã gia hạn</th>
+                <th style="padding: 12px 16px; text-align: center;">Trạng thái</th>
+                <th style="padding: 12px 16px; text-align: center;">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${loan.details}" style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 14px 16px; font-weight: 600; font-family: monospace;" th:text="${d.bookCopy.barcode}">BC-001</td>
+                <td style="padding: 14px 16px;">
+                    <a th:href="@{/admin/books/{id}(id=${d.bookCopy.book.id})}" style="font-weight: 500; color: #1e293b; text-decoration: none;" th:text="${d.bookCopy.book.title}">Tên sách</a>
+                </td>
+                <td style="padding: 14px 16px;">
+                    <span th:text="${d.currentDueDate}">2025-01-15</span>
+                    <span th:if="${d.isOverdue()}" class="badge" style="background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 6px;">
+                        Quá hạn <span th:text="${d.getOverdueDays()}"></span> ngày
+                    </span>
+                </td>
+                <td style="padding: 14px 16px; text-align: center;" th:text="${d.renewalCount} + ' lần'">0 lần</td>
+                <td style="padding: 14px 16px; text-align: center;">
+                    <span th:if="${d.status == 'BORROWING'}" class="badge" style="background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 12px;">Đang mượn</span>
+                    <span th:if="${d.status == 'RETURNED'}" class="badge" style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px;">Đã trả (<span th:text="${d.returnDate}"></span>)</span>
+                </td>
+                <td style="padding: 14px 16px; text-align: center;">
+                    <div th:if="${d.status == 'BORROWING'}" style="display: inline-flex; gap: 8px;">
+                        <!-- Nút Gia hạn -->
+                        <form th:action="@{/admin/loans/renew/{detailId}(detailId=${d.id})}" method="post" style="display: inline;">
+                            <input type="hidden" name="loanId" th:value="${loan.id}">
+                            <button type="submit" class="btn btn-sm btn-outline" title="Gia hạn thêm ngày" onclick="return confirm('Bạn có muốn gia hạn thêm thời gian mượn?');">
+                                <i class="fas fa-clock"></i> Gia hạn
+                            </button>
+                        </form>
+
+                        <!-- Nút Trả sách -->
+                        <form th:action="@{/admin/loans/return/{detailId}(detailId=${d.id})}" method="post" style="display: inline;">
+                            <input type="hidden" name="loanId" th:value="${loan.id}">
+                            <button type="submit" class="btn btn-sm btn-primary" title="Xác nhận trả sách" onclick="return confirm('Xác nhận độc giả đã trả cuốn sách này?');">
+                                <i class="fas fa-check"></i> Trả sách
+                            </button>
+                        </form>
+                    </div>
+                    <span th:if="${d.status == 'RETURNED'}" style="color: #64748b; font-size: 0.85rem;">Hoàn tất</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

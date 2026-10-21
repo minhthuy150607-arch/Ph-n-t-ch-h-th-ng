@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      lang="vi">
+<head>
+    <title>Tạo Phiếu mượn mới</title>
+    <!-- Thư viện quét mã QR Code -->
+    <script th:src="@{/js/html5-qrcode.min.js}"></script>
+    <style>
+        .book-copy-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        .book-copy-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);
+        }
+
+        .camera-modal-content {
+            background: #ffffff;
+            width: 500px;
+            max-width: 95%;
+            margin: 60px auto;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        #borrow-qr-reader {
+            width: 100% !important;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        #borrow-qr-reader video {
+            border-radius: 12px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-plus"></i> Tạo Phiếu Mượn Mới</h1>
+            <p class="page-subtitle">Thực hiện cho bạn đọc mượn sách tại quầy thư viện (hỗ trợ quét mã QR)</p>
+        </div>
+        <div class="page-header-right">
+            <a th:href="@{/admin/loans/quick-return}" class="btn btn-outline" style="border-color: #2563eb; color: #2563eb;">
+                <i class="fas fa-qrcode"></i> Quét QR Trả sách
+            </a>
+            <a th:href="@{/admin/loans}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <!-- Thông báo lỗi flash từ server -->
+    <div th:if="${errorMessage}" class="alert alert-danger" style="padding: 12px 16px; background: #ffebee; color: #c62828; border-radius: 8px; margin-bottom: 20px;">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Thông báo AJAX / JS -->
+    <div id="formAlertMessage" style="display: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 500;"></div>
+
+    <div class="dashboard-card" style="max-width: 800px; margin: 0 auto; padding: 26px;">
+        <form th:action="@{/admin/loans/new}" method="post" id="loanCreateForm" onsubmit="return validateBeforeSubmit();">
+            
+            <!-- CHỌN BẠN ĐỌC -->
+            <div style="margin-bottom: 22px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">
+                    Chọn Bạn đọc <span style="color: red;">*</span>
+                </label>
+                <select name="userId" id="readerSelect" required class="form-control" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <option value="">-- Chọn bạn đọc mượn sách --</option>
+                    <option th:each="r : ${readers}" th:value="${r.id}"
+                            th:text="${r.fullName} + ' (' + ${r.readerCode} + ' - ' + ${r.username} + ')'"
+                            th:disabled="${r.status == 'LOCKED'}">
+                    </option>
+                </select>
+                <small style="color: #64748b; display: block; margin-top: 4px;">Tài khoản bị khóa (LOCKED) sẽ không thể mượn sách.</small>
+            </div>
+
+            <!-- CHỌN BẢN SÁCH: QUÉT QR & NHẬP TAY -->
+            <div style="margin-bottom: 22px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="font-weight: 600; color: #1e293b; margin: 0;">
+                        Danh sách bản sách mượn <span style="color: red;">*</span>
+                    </label>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openBorrowScannerModal()">
+                        <i class="fas fa-qrcode"></i> Quét QR Code
+                    </button>
+                </div>
+
+                <!-- Thanh nhập mã nhanh -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <input type="text" id="inputSingleBarcode" class="form-control" 
+                           placeholder="Nhập mã barcode (Ví dụ: BC-BK-001-01)" 
+                           style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace;"
+                           onkeypress="if(event.key === 'Enter') { event.preventDefault(); addBarcodeFromInput(); }">
+                    <button type="button" class="btn btn-outline" onclick="addBarcodeFromInput()" style="white-space: nowrap;">
+                        <i class="fas fa-plus"></i> Thêm vào danh sách
+                    </button>
+                </div>
+
+                <!-- Danh sách bản sách trực quan đã được thêm -->
+                <div id="addedCopiesContainer" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; min-height: 80px; margin-bottom: 10px;">
+                    <div id="emptyCopiesNotice" style="text-align: center; color: #94a3b8; padding: 16px;">
+                        <i class="fas fa-books" style="font-size: 1.5rem; margin-bottom: 6px; display: block;"></i>
+                        Chưa có bản sách nào trong danh sách mượn. Hãy bấm <strong>Quét QR Code</strong> hoặc nhập mã barcode ở trên.
+                    </div>
+                    <div id="copiesList"></div>
+                </div>
+
+                <!-- Textarea ẩn/hiện đồng bộ dữ liệu gửi lên server -->
+                <div style="margin-top: 8px;">
+                    <textarea name="barcodes" id="barcodesTextarea" rows="2" required readonly
+                              style="width: 100%; padding: 8px 12px; border: 1px dashed #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 0.85rem; background: #fafafa; color: #475569;"
+                              placeholder="Mã vạch các cuốn sách sẽ tự động xuất hiện tại đây..."></textarea>
+                    <small style="color: #64748b; display: block; margin-top: 4px;">Hệ thống kiểm tra trạng thái từng bản sách tự động trước khi mượn.</small>
+                </div>
+            </div>
+
+            <!-- GHI CHÚ -->
+            <div style="margin-bottom: 26px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">Ghi chú mượn</label>
+                <input type="text" name="notes" class="form-control" style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ví dụ: Mượn phục vụ nghiên cứu đề tài môn học...">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <a th:href="@{/admin/loans}" class="btn btn-outline">Hủy bỏ</a>
+                <button type="submit" id="btnSubmitLoan" class="btn btn-primary" style="padding: 10px 24px; font-weight: 600;">
+                    <i class="fas fa-check"></i> Xác nhận mượn sách
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- MODAL QUÉT QR CODE -->
+    <div id="borrowQrModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 10000; backdrop-filter: blur(4px);">
+        <div class="camera-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #1e293b;">
+                    <i class="fas fa-qrcode text-primary"></i> Quét Mã QR Bản Sách
+                </h3>
+                <button type="button" onclick="closeBorrowScannerModal()" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+            </div>
+
+            <div id="borrowScanAlert" style="display: none; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; font-weight: 500;"></div>
+
+            <!-- Camera Viewport -->
+            <div style="position: relative; border-radius: 12px; overflow: hidden; background: #0f172a;">
+                <div id="borrow-qr-reader"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                <button type="button" id="btnSwitchCameraModal" class="btn btn-sm btn-outline" onclick="switchBorrowCamera()" style="display: none;">
+                    <i class="fas fa-sync-alt"></i> Đổi camera
+                </button>
+                <div style="color: #64748b; font-size: 0.85rem;">
+                    Đưa mã QR trên bản sách vào khung quét
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" onclick="closeBorrowScannerModal()">
+                    Hoàn tất
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- SCRIPT XỬ LÝ QUÉT VÀ QUẢN LÝ DANH SÁCH BẢN SÁCH MƯỢN -->
+<script layout:fragment="scripts">
+    let borrowHtml5QrCode = null;
+    let isBorrowScanning = false;
+    let borrowCameras = [];
+    let borrowCameraIndex = 0;
+
+    // Set lưu trữ danh sách mã barcode duy nhất đã thêm
+    const selectedCopies = new Map(); // barcode -> object { barcode, title, author, coverImage }
+
+    function showFormAlert(message, type) {
+        const el = document.getElementById('formAlertMessage');
+        el.textContent = message;
+        el.style.display = 'block';
+        if (type === 'success') {
+            el.style.background = '#dcfce7';
+            el.style.color = '#15803d';
+            el.style.border = '1px solid #bbf7d0';
+        } else {
+            el.style.background = '#fee2e2';
+            el.style.color = '#b91c1c';
+            el.style.border = '1px solid #fecaca';
+        }
+    }
+
+    function showModalAlert(message, type) {
+        const el = document.getElementById('borrowScanAlert');
+        el.textContent = message;
+        el.style.display = 'block';
+        if (type === 'success') {
+            el.style.background = '#dcfce7';
+            el.style.color = '#15803d';
+        } else {
+            el.style.background = '#fee2e2';
+            el.style.color = '#b91c1c';
+        }
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 3500);
+    }
+
+    // Mở Modal Quét QR
+    async function openBorrowScannerModal() {
+        document.getElementById('borrowQrModal').style.display = 'block';
+        document.getElementById('borrowScanAlert').style.display = 'none';
+
+        try {
+            if (!borrowHtml5QrCode) {
+                borrowHtml5QrCode = new Html5Qrcode("borrow-qr-reader");
+            }
+
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                showModalAlert('Không tìm thấy camera trên thiết bị! Vui lòng nhập mã thủ công.', 'error');
+                return;
+            }
+
+            borrowCameras = cameras;
+            if (cameras.length > 1) {
+                document.getElementById('btnSwitchCameraModal').style.display = 'inline-block';
+            }
+
+            const cameraId = cameras[borrowCameraIndex % cameras.length].id;
+            await borrowHtml5QrCode.start(
+                cameraId,
+                {
+                    fps: 10,
+                    qrbox: { width: 220, height: 220 }
+                },
+                onBorrowQrSuccess,
+                () => {}
+            );
+
+            isBorrowScanning = true;
+        } catch (err) {
+            console.error('Lỗi khởi động camera:', err);
+            showModalAlert('Không thể truy cập camera! Vui lòng kiểm tra quyền truy cập trình duyệt.', 'error');
+        }
+    }
+
+    // Đóng Modal Quét QR
+    async function closeBorrowScannerModal() {
+        if (borrowHtml5QrCode && isBorrowScanning) {
+            try {
+                await borrowHtml5QrCode.stop();
+            } catch (e) {}
+            isBorrowScanning = false;
+        }
+        document.getElementById('borrowQrModal').style.display = 'none';
+    }
+
+    async function switchBorrowCamera() {
+        if (borrowCameras.length > 1) {
+            if (borrowHtml5QrCode && isBorrowScanning) {
+                await borrowHtml5QrCode.stop();
+                isBorrowScanning = false;
+            }
+            borrowCameraIndex++;
+            openBorrowScannerModal();
+        }
+    }
+
+    let lastBorrowScanCode = '';
+    let lastBorrowScanTime = 0;
+
+    function onBorrowQrSuccess(decodedText) {
+        const now = Date.now();
+        if (decodedText === lastBorrowScanCode && (now - lastBorrowScanTime < 2500)) {
+            return;
+        }
+        lastBorrowScanCode = decodedText;
+        lastBorrowScanTime = now;
+
+        validateAndAddCopy(decodedText, true);
+    }
+
+    function addBarcodeFromInput() {
+        const input = document.getElementById('inputSingleBarcode');
+        const code = input.value.trim();
+        if (!code) {
+            showFormAlert('Vui lòng nhập mã bản sách (Barcode)!', 'error');
+            input.focus();
+            return;
+        }
+        validateAndAddCopy(code, false);
+        input.value = '';
+    }
+
+    // Kiểm tra bản sách với backend trước khi thêm vào danh sách mượn
+    function validateAndAddCopy(barcode, fromScanner) {
+        if (selectedCopies.has(barcode)) {
+            const msg = 'Bản sách mã ' + barcode + ' đã có trong danh sách mượn!';
+            if (fromScanner) showModalAlert(msg, 'error');
+            else showFormAlert(msg, 'error');
+            return;
+        }
+
+        fetch('/api/book-copies/' + encodeURIComponent(barcode) + '/validate-borrow')
+            .then(res => res.json())
+            .then(res => {
+                if (!res.valid) {
+                    const errorMsg = res.message || 'Bản sách không sẵn sàng để mượn!';
+                    if (fromScanner) showModalAlert(errorMsg, 'error');
+                    else showFormAlert(errorMsg, 'error');
+                } else {
+                    const data = res.data;
+                    selectedCopies.set(barcode, {
+                        barcode: data.barcode,
+                        title: data.title,
+                        author: data.author,
+                        coverImage: data.coverImage
+                    });
+
+                    renderCopiesList();
+                    const successMsg = 'Đã thêm: ' + data.barcode + ' (' + data.title + ')';
+                    if (fromScanner) showModalAlert(successMsg, 'success');
+                    else showFormAlert(successMsg, 'success');
+                }
+            })
+            .catch(err => {
+                const msg = 'Lỗi kiểm tra bản sách: ' + err.message;
+                if (fromScanner) showModalAlert(msg, 'error');
+                else showFormAlert(msg, 'error');
+            });
+    }
+
+    function removeCopy(barcode) {
+        selectedCopies.delete(barcode);
+        renderCopiesList();
+    }
+
+    function renderCopiesList() {
+        const container = document.getElementById('copiesList');
+        const emptyNotice = document.getElementById('emptyCopiesNotice');
+        const textarea = document.getElementById('barcodesTextarea');
+
+        container.innerHTML = '';
+
+        if (selectedCopies.size === 0) {
+            emptyNotice.style.display = 'block';
+            textarea.value = '';
+            return;
+        }
+
+        emptyNotice.style.display = 'none';
+
+        const barcodeArray = [];
+        selectedCopies.forEach((item, barcode) => {
+            barcodeArray.push(barcode);
+
+            const div = document.createElement('div');
+            div.className = 'book-copy-item';
+            div.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <img src="${item.coverImage || '/images/cover-default.svg'}" onerror="this.src='/images/cover-default.svg'" 
+                         style="width: 42px; height: 56px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div>
+                        <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${item.title}</div>
+                        <div style="font-size: 0.8rem; color: #64748b;">
+                            TG: ${item.author || 'N/A'} | Mã: <span style="font-family: monospace; font-weight: 700; color: #2563eb;">${item.barcode}</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" style="color: #ef4444; border-color: #fecaca; padding: 4px 10px;" 
+                        onclick="removeCopy('${item.barcode}')" title="Xóa khỏi danh sách">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        });
+
+        textarea.value = barcodeArray.join('\n');
+    }
+
+    function validateBeforeSubmit() {
+        const readerId = document.getElementById('readerSelect').value;
+        if (!readerId) {
+            showFormAlert('Vui lòng chọn bạn đọc mượn sách!', 'error');
+            return false;
+        }
+
+        if (selectedCopies.size === 0) {
+            showFormAlert('Vui lòng thêm ít nhất 1 bản sách vào danh sách mượn!', 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Đóng khi click ra ngoài modal
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('borrowQrModal');
+        if (e.target === modal) {
+            closeBorrowScannerModal();
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (borrowHtml5QrCode && isBorrowScanning) {
+            borrowHtml5QrCode.stop().catch(() => {});
+        }
+    });
+</script>
+</body>
+</html>

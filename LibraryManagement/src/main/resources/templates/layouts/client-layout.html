@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hệ thống quản lý thư viện trực tuyến - Tra cứu, mượn trả sách thông minh">
+    <title layout:title-pattern="$CONTENT_TITLE - Thư Viện">Thư Viện</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- CSS tùy chỉnh -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+</head>
+<body class="client-body">
+
+    <!-- ===== HEADER (Glassmorphic Sticky) ===== -->
+    <header class="client-header">
+        <div class="header-container">
+            <!-- Logo -->
+            <a th:href="@{/}" class="logo">
+                <div class="logo-icon-badge">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">Thư Viện Số</span>
+                    <span class="logo-subtitle">Library Portal</span>
+                </div>
+            </a>
+
+            <!-- Navigation chính -->
+            <nav class="main-nav" id="mainNav">
+                <a th:href="@{/home}" class="nav-link">
+                    <i class="fas fa-home"></i> Trang chủ
+                </a>
+                <a th:href="@{/client/books}" class="nav-link">
+                    <i class="fas fa-search"></i> Tra cứu sách
+                </a>
+
+                <!-- Menu cho bạn đọc đã đăng nhập -->
+                <div sec:authorize="hasRole('READER')" class="nav-group">
+                    <a th:href="@{/reader/loans}" class="nav-link">
+                        <i class="fas fa-clipboard-list"></i> Phiếu mượn
+                    </a>
+                    <a th:href="@{/reader/reservations}" class="nav-link">
+                        <i class="fas fa-bookmark"></i> Đặt trước
+                    </a>
+                </div>
+
+                <!-- User menu - đã đăng nhập -->
+                <div sec:authorize="isAuthenticated()" class="user-menu">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <div class="user-menu-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span sec:authentication="name">User</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a th:href="@{/reader/profile}" sec:authorize="hasRole('READER')">
+                            <i class="fas fa-user-circle"></i> Thông tin cá nhân
+                        </a>
+                        <a th:href="@{/reader/change-password}" sec:authorize="hasRole('READER')">
+                            <i class="fas fa-key"></i> Đổi mật khẩu
+                        </a>
+                        <a th:href="@{/admin/dashboard}" sec:authorize="hasRole('ADMIN')">
+                            <i class="fas fa-tachometer-alt"></i> Trang quản trị
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Nút đăng nhập - chưa đăng nhập -->
+                <div sec:authorize="!isAuthenticated()" class="nav-auth">
+                    <a th:href="@{/login}" class="btn btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Nút menu mobile -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== NỘI DUNG CHÍNH ===== -->
+    <main class="client-main">
+        <div style="max-width: 1240px; margin: 0 auto; padding: 16px 24px 0;">
+            <!-- Alert Thành công -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <i class="fas fa-check-circle" style="font-size: 1.25rem;"></i>
+                <div style="flex: 1;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; opacity: 0.7;">&times;</button>
+            </div>
+
+            <!-- Alert Lỗi -->
+            <div th:if="${errorMessage}" class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.25rem;"></i>
+                <div style="flex: 1;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+                <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; opacity: 0.7;">&times;</button>
+            </div>
+        </div>
+
+        <div layout:fragment="content">
+            <!-- Nội dung trang con sẽ được chèn vào đây -->
+        </div>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="client-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <h3>
+                    <span style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #3b82f6); display: inline-flex; align-items: center; justify-content: center; font-size: 15px; color: #fff;">
+                        <i class="fas fa-book-open"></i>
+                    </span>
+                    Thư Viện Số
+                </h3>
+                <p>Nền tảng tra cứu và mượn trả kho tài liệu số thông minh, hỗ trợ độc giả tiếp cận nguồn tri thức phong phú mọi lúc mọi nơi.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Khám phá</h4>
+                <a th:href="@{/home}"><i class="fas fa-angle-right" style="margin-right: 6px; font-size: 11px;"></i> Trang chủ</a>
+                <a th:href="@{/client/books}"><i class="fas fa-angle-right" style="margin-right: 6px; font-size: 11px;"></i> Tra cứu kho sách</a>
+                <a th:href="@{/login}"><i class="fas fa-angle-right" style="margin-right: 6px; font-size: 11px;"></i> Đăng nhập độc giả</a>
+                <a th:href="@{/register}"><i class="fas fa-angle-right" style="margin-right: 6px; font-size: 11px;"></i> Đăng ký tài khoản</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Liên hệ hỗ trợ</h4>
+                <p><i class="fas fa-envelope"></i> thuvien@example.edu.vn</p>
+                <p><i class="fas fa-phone-alt"></i> (028) 3899 9999</p>
+                <p><i class="fas fa-map-marker-alt"></i> Khu đô thị Đại học, TP. Hồ Chí Minh</p>
+                <p><i class="fas fa-clock"></i> Mở cửa: Thứ 2 - Thứ 7 (7:30 - 20:30)</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 - 2026 Smart Library Management System. Thiết kế hiện đại &amp; Tối ưu trải nghiệm người dùng.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

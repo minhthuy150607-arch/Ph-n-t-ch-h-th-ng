@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Sách Đã Đặt Trước - Thư Viện Số</title>
+</head>
+<body>
+<div layout:fragment="content" style="max-width: 1240px; margin: 0 auto; padding: 24px 24px 60px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <span class="badge badge-warning" style="margin-bottom: 8px;">
+                <i class="fas fa-bookmark"></i> Hàng Đợi Ưu Tiên
+            </span>
+            <h1 style="font-size: 2rem; margin: 0 0 6px 0; color: var(--text-primary);">Sách Đã Đặt Trước</h1>
+            <p style="color: var(--text-secondary); margin: 0;">Theo dõi trạng thái các cuốn sách bạn đã gửi yêu cầu giữ sách trước</p>
+        </div>
+        <div>
+            <a th:href="@{/client/books}" class="btn btn-outline">
+                <i class="fas fa-search"></i> Tra cứu thêm sách
+            </a>
+        </div>
+    </div>
+
+    <!-- Thông báo Flash message -->
+    <div th:if="${successMessage}" class="alert alert-success">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Tên sách</th>
+                <th>Ngày đặt</th>
+                <th>Hạn giữ sách</th>
+                <th style="text-align: center;">Trạng thái</th>
+                <th style="text-align: center;">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${reservations}">
+                <td style="font-weight: 600;">
+                    <a th:href="@{/client/books/{id}(id=${r.book.id})}" style="color: var(--text-primary);" th:text="${r.book.title}">Tên sách</a>
+                </td>
+                <td style="color: var(--text-secondary);" th:text="${#temporals.format(r.reservationDate, 'yyyy-MM-dd HH:mm')}">2025-01-01 10:00</td>
+                <td style="color: var(--text-secondary); font-weight: 600;" th:text="${#temporals.format(r.expiryDate, 'yyyy-MM-dd HH:mm')}">2025-01-04 10:00</td>
+                <td style="text-align: center;">
+                    <span th:if="${r.status == 'PENDING'}" class="badge badge-warning">
+                        <i class="fas fa-hourglass-half"></i> Đang chờ nhận
+                    </span>
+                    <span th:if="${r.status == 'FULFILLED'}" class="badge badge-success">
+                        <i class="fas fa-check-circle"></i> Đã mượn
+                    </span>
+                    <span th:if="${r.status == 'CANCELLED'}" class="badge badge-danger">
+                        <i class="fas fa-ban"></i> Đã hủy
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <form th:if="${r.status == 'PENDING'}" th:action="@{/reader/reservations/cancel/{id}(id=${r.id})}" method="post" onsubmit="return confirm('Bạn có chắc muốn hủy đặt trước cuốn sách này?');">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-times"></i> Hủy đặt
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(reservations)}">
+                <td colspan="5">
+                    <div class="empty-state">
+                        <i class="fas fa-bookmark"></i>
+                        <p>Bạn chưa đặt trước cuốn sách nào</p>
+                        <span class="empty-hint">Khi một cuốn sách tạm hết bản sao, bạn có thể bấm "Đặt trước" để được giữ sách ưu tiên ngay khi có người trả.</span>
+                        <div style="margin-top: 18px;">
+                            <a th:href="@{/client/books}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Khám phá kho sách
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

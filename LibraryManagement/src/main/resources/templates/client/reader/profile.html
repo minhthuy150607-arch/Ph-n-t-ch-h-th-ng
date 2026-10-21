@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Thông tin tài khoản - Thư Viện Số</title>
+</head>
+<body>
+<div layout:fragment="content" style="max-width: 1240px; margin: 0 auto; padding: 24px 24px 60px;">
+    <div style="max-width: 680px; margin: 20px auto; background: white; border-radius: var(--border-radius-xl); padding: 36px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; border-bottom: 1px solid var(--border-color-subtle); padding-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div>
+                    <h1 style="font-size: 1.5rem; margin: 0; color: var(--text-primary);" th:text="${user.fullName}">Họ và tên</h1>
+                    <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 0.88rem;">
+                        Tên đăng nhập: <strong th:text="${user.username}"></strong> | Mã thẻ: <span class="badge badge-info" th:text="${user.readerCode}"></span>
+                    </p>
+                </div>
+            </div>
+            <a th:href="@{/reader/change-password}" class="btn btn-sm btn-outline">
+                <i class="fas fa-key"></i> Đổi mật khẩu
+            </a>
+        </div>
+
+        <!-- Thông báo Flash message -->
+        <div th:if="${successMessage}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+        </div>
+
+        <form th:action="@{/reader/profile}" method="post">
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-id-card"></i> Họ và tên <span style="color: var(--color-danger);">*</span>
+                </label>
+                <input type="text" name="fullName" th:value="${user.fullName}" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-envelope"></i> Email liên hệ
+                </label>
+                <input type="email" name="email" th:value="${user.email}" class="form-control" placeholder="example@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-phone"></i> Số điện thoại
+                </label>
+                <input type="tel" name="phone" th:value="${user.phone}" class="form-control" placeholder="0912345678">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; border-top: 1px solid var(--border-color-subtle); padding-top: 20px;">
+                <a th:href="@{/home}" class="btn btn-outline">Trang chủ</a>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+                    <i class="fas fa-save"></i> Cập nhật thông tin
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

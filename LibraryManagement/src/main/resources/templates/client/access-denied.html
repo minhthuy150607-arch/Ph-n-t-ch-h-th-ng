@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Truy cập bị từ chối</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="error-container">
+            <div class="error-card">
+                <div class="error-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <h1>403</h1>
+                <h2>Truy cập bị từ chối</h2>
+                <p>Bạn không có quyền truy cập trang này.</p>
+                <div class="error-actions">
+                    <a th:href="@{/home}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Về trang chủ
+                    </a>
+                    <a th:href="@{/login}" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập lại
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

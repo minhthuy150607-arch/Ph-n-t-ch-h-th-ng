@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title th:text="${book.title} + ' - Chi Tiết Sách'">Chi Tiết Sách</title>
+</head>
+<body>
+<div layout:fragment="content" class="book-detail-wrapper">
+
+    <!-- Thanh quay lại -->
+    <div class="book-detail-back">
+        <a th:href="@{/client/books}" class="btn btn-sm btn-outline" style="border-radius: var(--border-radius-full);">
+            <i class="fas fa-arrow-left"></i> Quay lại kho sách
+        </a>
+    </div>
+
+    <!-- Khung chi tiết sách lớn -->
+    <div class="book-detail-card">
+        <div class="book-detail-grid">
+            
+            <!-- Cột ảnh bìa & Hành động -->
+            <div class="book-detail-sidebar">
+                <!-- Ảnh bìa với hiệu ứng 3D shadow -->
+                <div class="book-detail-cover">
+                    <img th:if="${book.coverImage}" th:src="${book.coverImage}" onerror="this.src='/images/cover-default.svg'" th:alt="${book.title}">
+                    <div th:unless="${book.coverImage}" class="book-detail-cover-placeholder">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                </div>
+
+                <!-- Box Hành động cho Bạn đọc -->
+                <div sec:authorize="hasRole('READER')">
+                    <!-- Còn sách sẵn sàng để mượn -->
+                    <div th:if="${book.availableCopiesCount > 0}" class="book-action-available">
+                        <div class="book-action-header">
+                            <span class="book-action-icon">
+                                <i class="fas fa-bolt"></i>
+                            </span>
+                            Mượn Sách Online
+                        </div>
+                        <p class="book-action-desc">
+                            Thời hạn mượn: <strong>14 ngày</strong> (có thể gia hạn trực tuyến). Bản sao sẽ được tự động giữ riêng cho bạn tại thư viện.
+                        </p>
+                        <form th:action="@{/reader/borrow/{bookId}(bookId=${book.id})}" method="post">
+                            <div style="margin-bottom: 14px;">
+                                <input type="text" name="notes" placeholder="Ghi chú thêm (không bắt buộc)..." class="form-control" style="font-size: 0.9rem; background: #ffffff;">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block" style="padding: 13px; font-size: 15px; font-weight: 700; border-radius: var(--border-radius);" onclick="return confirm('Xác nhận bạn muốn mượn online cuốn sách này?');">
+                                <i class="fas fa-check-circle"></i> Xác Nhận Mượn Ngay
+                            </button>
+                        </form>
+
+                        <div style="margin-top: 12px; text-align: center;">
+                            <form th:action="@{/reader/reserve/{bookId}(bookId=${book.id})}" method="post">
+                                <button type="submit" class="btn btn-sm btn-outline" style="width: 100%; border-radius: var(--border-radius); font-weight: 600;">
+                                    <i class="fas fa-bookmark"></i> Đặt trước (Hẹn ngày lấy)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Hết sách sẵn sàng -> Đặt trước -->
+                    <div th:unless="${book.availableCopiesCount > 0}" class="book-action-reserved">
+                        <div class="book-action-reserved-header">
+                            <i class="fas fa-info-circle" style="color: #f59e0b; font-size: 18px;"></i> Sách Tạm Thời Đang Hết Bản Sao
+                        </div>
+                        <p class="book-action-desc" style="color: #78350f; margin-bottom: 16px;">
+                            Bạn có thể bấm <strong>Đặt trước</strong>. Ngay khi có độc giả hoàn trả sách, hệ thống sẽ ưu tiên giữ sách cho bạn trong 3 ngày!
+                        </p>
+                        <form th:action="@{/reader/reserve/{bookId}(bookId=${book.id})}" method="post">
+                            <button type="submit" class="btn btn-primary btn-block" style="padding: 13px; font-size: 15px; font-weight: 700; border-radius: var(--border-radius);" onclick="return confirm('Xác nhận đặt trước cuốn sách này?');">
+                                <i class="fas fa-bookmark"></i> Đặt Trước Cuốn Này
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Box Dành cho Khách chưa đăng nhập -->
+                <div sec:authorize="!isAuthenticated()" class="book-action-guest">
+                    <i class="fas fa-lock book-action-guest-icon"></i>
+                    <h4>Mượn Sách Trực Tuyến</h4>
+                    <p>
+                        Đăng nhập tài khoản bạn đọc để mượn hoặc đặt trước cuốn sách này trực tuyến.
+                    </p>
+                    <a th:href="@{/login}" class="btn btn-primary btn-block" style="margin-bottom: 10px;">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập ngay
+                    </a>
+                    <a th:href="@{/register}" class="book-register-link">
+                        Chưa có tài khoản? Đăng ký tại đây &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cột thông tin chi tiết -->
+            <div class="book-detail-main">
+                <!-- Category badge -->
+                <span class="badge book-detail-category" th:text="${book.category}">Thể loại</span>
+                
+                <h1 class="book-detail-title" th:text="${book.title}">Tiêu đề sách</h1>
+                
+                <p class="book-detail-author">
+                    <i class="fas fa-pen-nib" style="color: var(--color-accent);"></i> Tác giả: <strong style="color: var(--text-primary);" th:text="${book.author}">Tác giả</strong>
+                </p>
+
+                <!-- Grid 4 thông số sách -->
+                <div class="book-meta-grid">
+                    <div class="book-meta-item">
+                        <div class="book-meta-label">Mã sách</div>
+                        <div class="book-meta-value" style="font-family: monospace;" th:text="${book.bookCode}">BK-001</div>
+                    </div>
+                    <div class="book-meta-item">
+                        <div class="book-meta-label">Nhà xuất bản</div>
+                        <div class="book-meta-value" th:text="${book.publisher} ?: 'Đang cập nhật'">NXB Trẻ</div>
+                    </div>
+                    <div class="book-meta-item">
+                        <div class="book-meta-label">Năm phát hành</div>
+                        <div class="book-meta-value" th:text="${book.publishYear} ?: 'Đang cập nhật'">2023</div>
+                    </div>
+                    <div class="book-meta-item">
+                        <div class="book-meta-label">Tình trạng bản sao</div>
+                        <div class="book-meta-value">
+                            <span th:if="${book.availableCopiesCount > 0}" class="status-available-text">
+                                <span class="status-dot available"></span> Còn <span th:text="${book.availableCopiesCount}"></span>/<span th:text="${book.totalCopiesCount}"></span> bản
+                            </span>
+                            <span th:unless="${book.availableCopiesCount > 0}" class="status-unavailable-text">
+                                <span class="status-dot unavailable"></span> Đang mượn hết
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giới thiệu nội dung -->
+                <div class="book-desc-section">
+                    <h3 class="book-desc-title">
+                        <i class="fas fa-align-left" style="color: var(--color-accent); font-size: 18px;"></i> Tóm Tắt &amp; Giới Thiệu
+                    </h3>
+                    <div class="book-desc-box">
+                        <p th:text="${book.description} ?: 'Chưa có thông tin mô tả chi tiết cho cuốn sách này.'"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

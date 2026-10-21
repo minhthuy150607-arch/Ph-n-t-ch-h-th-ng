@@ -1,0 +1,100 @@
+package com.library.config;
+
+import com.library.service.CustomUserDetailsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final CustomUserDetailsService userDetailsService;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authenticationProvider(authenticationProvider())
+            .authorizeHttpRequests(auth -> auth
+                // Công khai
+                .requestMatchers("/", "/home", "/client/**", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/login", "/register", "/h2-console/**", "/uploads/**").permitAll()
+                .requestMatchers("/api/qr/**").permitAll()
+                // API nội bộ quản lý thư viện
+                .requestMatchers("/api/**").hasRole("ADMIN")
+                // Quản trị viên
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Bạn đọc
+                .requestMatchers("/reader/**").hasRole("READER")
+                // Còn lại
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .successHandler(authenticationSuccessHandler())
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/access-denied")
+            )
+            // Hỗ trợ H2 console và REST API AJAX
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/api/**"))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return (request, response, authentication) -> {
+            String redirectUrl = "/home";
+            for (var authority : authentication.getAuthorities()) {
+                if (authority.getAuthority().equals("ROLE_ADMIN")) {
+                    redirectUrl = "/admin/dashboard";
+                    break;
+                } else if (authority.getAuthority().equals("ROLE_READER")) {
+                    redirectUrl = "/home";
+                    break;
+                }
+            }
+            response.sendRedirect(request.getContextPath() + redirectUrl);
+        };
+    }
+}

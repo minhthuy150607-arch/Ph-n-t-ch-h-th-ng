@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}"
+      lang="vi">
+<head>
+    <title th:text="${pageTitle} + ' - Quản Trị Thư Viện'">Thêm / Sửa Tài khoản</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title" th:text="${account.id != null} ? 'Chỉnh sửa Tài khoản' : 'Thêm Tài khoản Mới'">Thêm Tài khoản Mới</h1>
+            <p class="page-subtitle">Phân quyền, cấp mật khẩu và quản lý trạng thái tài khoản người dùng</p>
+        </div>
+        <div class="page-header-right">
+            <a th:href="@{/admin/accounts}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <div class="form-card" style="margin: 0 auto;">
+        <form th:action="${account.id != null} ? @{/admin/accounts/edit/{id}(id=${account.id})} : @{/admin/accounts/new}"
+              th:object="${account}" method="post">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        <i class="fas fa-user"></i> Tên đăng nhập <span style="color: var(--color-danger);">*</span>
+                    </label>
+                    <input type="text" th:field="*{username}" required class="form-control" th:readonly="${account.id != null}">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        <i class="fas fa-lock"></i> Mật khẩu <span th:if="${account.id == null}" style="color: var(--color-danger);">*</span> (Mặc định: 123456)
+                    </label>
+                    <input type="password" name="rawPassword" class="form-control" placeholder="Nhập để đặt mật khẩu mới">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        <i class="fas fa-id-card"></i> Họ và tên <span style="color: var(--color-danger);">*</span>
+                    </label>
+                    <input type="text" th:field="*{fullName}" required class="form-control">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        <i class="fas fa-user-shield"></i> Vai trò phân quyền <span style="color: var(--color-danger);">*</span>
+                    </label>
+                    <select th:field="*{role}" class="form-control">
+                        <option value="ADMIN">ADMIN (Quản trị viên / Thủ thư)</option>
+                        <option value="READER">READER (Bạn đọc)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        <i class="fas fa-envelope"></i> Email liên hệ
+                    </label>
+                    <input type="email" th:field="*{email}" class="form-control" placeholder="example@email.com">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>
+                        <i class="fas fa-phone"></i> Số điện thoại
+                    </label>
+                    <input type="tel" th:field="*{phone}" class="form-control" placeholder="0912345678">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
+                    <label>
+                        <i class="fas fa-toggle-on"></i> Trạng thái tài khoản
+                    </label>
+                    <select th:field="*{status}" class="form-control">
+                        <option value="ACTIVE">Hoạt động (ACTIVE - Được phép đăng nhập)</option>
+                        <option value="LOCKED">Khóa (LOCKED - Tạm ngưng hoạt động)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/admin/accounts}" class="btn btn-outline">Hủy bỏ</a>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
+                    <i class="fas fa-save"></i> Lưu tài khoản
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/client-layout}"
+      lang="vi">
+<head>
+    <title>Tra Cứu Kho Sách - Thư Viện Số</title>
+</head>
+<body>
+<div layout:fragment="content" class="books-list-wrapper">
+
+    <!-- Banner Tra cứu Header -->
+    <div class="books-list-banner">
+        <div class="books-banner-glow-1"></div>
+        <div class="books-banner-glow-2"></div>
+
+        <div style="position: relative; z-index: 2; max-width: 720px; margin: 0 auto;">
+            <span class="hero-badge" style="margin-bottom: 16px;">
+                <i class="fas fa-book-reader"></i> Kho Tài Liệu Số Chuẩn
+            </span>
+            <h1 class="books-list-title">Tra Cứu Kho Sách Thư Viện</h1>
+            <p class="books-list-desc">Hàng ngàn đầu sách về Công nghệ, Kinh tế, Khoa học, Kỹ năng và Văn học</p>
+
+            <!-- Form tìm kiếm -->
+            <form th:action="@{/client/books}" method="get" class="hero-search-box" style="margin-bottom: 0;">
+                <i class="fas fa-search"></i>
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Nhập tên sách, tác giả hoặc thể loại...">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> <span>Tìm kiếm</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bộ lọc thể loại (Filter Pills) -->
+    <div class="filter-pills-bar">
+        <a th:href="@{/client/books}" class="filter-pill"
+           th:classappend="${selectedCategory == null} ? 'active' : ''">
+            <i class="fas fa-th-large" style="margin-right: 4px;"></i> Tất cả
+        </a>
+        <a th:each="cat : ${categories}" th:href="@{/client/books(category=${cat})}"
+           class="filter-pill"
+           th:classappend="${selectedCategory == cat} ? 'active' : ''"
+           th:text="${cat}">Thể loại</a>
+    </div>
+
+    <!-- Thông báo kết quả tìm kiếm -->
+    <div class="search-result-header">
+        <div style="font-size: 0.95rem; color: var(--text-secondary);">
+            <span th:if="${keyword != null and !keyword.isEmpty()}">
+                Kết quả cho: <strong style="color: var(--text-primary);" th:text="${keyword}"></strong> |
+            </span>
+            <span th:if="${selectedCategory != null}">
+                Thể loại: <strong style="color: var(--text-primary);" th:text="${selectedCategory}"></strong> |
+            </span>
+            Tìm thấy <strong style="color: var(--color-accent);" th:text="${books != null ? #lists.size(books) : 0}">0</strong> đầu sách
+        </div>
+        <div th:if="${keyword != null or selectedCategory != null}">
+            <a th:href="@{/client/books}" class="btn btn-sm btn-outline" style="border-radius: var(--border-radius-full);">
+                <i class="fas fa-times"></i> Xóa bộ lọc
+            </a>
+        </div>
+    </div>
+        <div style="font-size: 0.95rem; color: var(--text-secondary);">
+            <span th:if="${keyword != null and !keyword.isEmpty()}">
+                Kết quả cho: <strong style="color: var(--text-primary);" th:text="${keyword}"></strong> |
+            </span>
+            <span th:if="${selectedCategory != null}">
+                Thể loại: <strong style="color: var(--text-primary);" th:text="${selectedCategory}"></strong> |
+            </span>
+            Tìm thấy <strong style="color: var(--color-accent);" th:text="${books != null ? #lists.size(books) : 0}">0</strong> đầu sách
+        </div>
+        <div th:if="${keyword != null or selectedCategory != null}">
+            <a th:href="@{/client/books}" class="btn btn-sm btn-outline" style="border-radius: var(--border-radius-full);">
+                <i class="fas fa-times"></i> Xóa bộ lọc
+            </a>
+        </div>
+    </div>
+
+    <!-- Grid danh sách sách -->
+    <div class="book-grid" th:if="${books != null and !#lists.isEmpty(books)}">
+        <div th:each="book : ${books}" class="book-card">
+            <!-- Bìa sách -->
+            <div class="book-card-cover">
+                <img th:if="${book.coverImage}" th:src="${book.coverImage}" onerror="this.src='/images/cover-default.svg'" th:alt="${book.title}">
+                <div th:unless="${book.coverImage}" class="book-card-cover-fallback">
+                    <i class="fas fa-book"></i>
+                </div>
+                <!-- Badge thể loại -->
+                <span class="book-category-badge" th:text="${book.category}">Thể loại</span>
+            </div>
+
+            <!-- Nội dung tóm tắt -->
+            <div class="book-card-body">
+                <div>
+                    <h3 class="book-card-title" th:text="${book.title}">Tiêu đề sách</h3>
+                    <p class="book-card-author">
+                        <i class="fas fa-pen-nib"></i> <span th:text="${book.author}">Tác giả</span>
+                    </p>
+                </div>
+
+                <div>
+                    <!-- Tình trạng sách -->
+                    <div class="book-card-meta">
+                        <div class="status-pill">
+                            <span th:if="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #059669;">
+                                <span class="status-dot available"></span> Còn <strong th:text="${book.availableCopiesCount}">3</strong> bản
+                            </span>
+                            <span th:unless="${book.availableCopiesCount > 0}" style="display: flex; align-items: center; gap: 6px; color: #dc2626;">
+                                <span class="status-dot unavailable"></span> Tạm hết
+                            </span>
+                        </div>
+                        <span style="color: #94a3b8; font-weight: 500;" th:text="${book.publishYear}">2023</span>
+                    </div>
+
+                    <!-- Hành động cho bạn đọc -->
+                    <div sec:authorize="hasRole('READER')" class="book-card-actions">
+                        <a th:href="@{/client/books/{id}(id=${book.id})}" class="btn btn-sm btn-outline" style="flex: 1;">
+                            Chi tiết
+                        </a>
+                        <form th:if="${book.availableCopiesCount > 0}" th:action="@{/reader/borrow/{bookId}(bookId=${book.id})}" method="post" style="flex: 1;">
+                            <button type="submit" class="btn btn-sm btn-success" style="width: 100%;" onclick="return confirm('Xác nhận mượn online cuốn sách này?');">
+                                <i class="fas fa-bolt"></i> Mượn ngay
+                            </button>
+                        </form>
+                        <form th:unless="${book.availableCopiesCount > 0}" th:action="@{/reader/reserve/{bookId}(bookId=${book.id})}" method="post" style="flex: 1;">
+                            <button type="submit" class="btn btn-sm btn-primary" style="width: 100%;" onclick="return confirm('Đặt trước cuốn sách này?');">
+                                <i class="fas fa-bookmark"></i> Đặt trước
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Khách hoặc Admin -->
+                    <div sec:authorize="!hasRole('READER')">
+                        <a th:href="@{/client/books/{id}(id=${book.id})}" class="btn btn-sm btn-outline btn-block">
+                            <i class="fas fa-info-circle"></i> Xem chi tiết &amp; Bản sao
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(books)}" class="empty-state" style="background: white; border-radius: var(--border-radius-lg); border: 1px solid var(--border-color); padding: 60px 24px;">
+        <i class="fas fa-search"></i>
+        <h3>Không tìm thấy cuốn sách phù hợp</h3>
+        <p class="empty-hint" style="max-width: 450px; margin: 8px auto 20px;">Vui lòng thử tìm kiếm với từ khóa khác, tên tác giả hoặc chọn danh mục thể loại khác.</p>
+        <a th:href="@{/client/books}" class="btn btn-primary">
+            <i class="fas fa-redo"></i> Xem tất cả kho sách
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

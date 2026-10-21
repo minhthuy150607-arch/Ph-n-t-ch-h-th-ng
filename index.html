@@ -1,0 +1,3233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumora — Independent Design & Engineering Studio</title>
+  <meta name="description" content="Lumora is an independent studio crafting brands, products, and the systems that connect them — bold ideas, shipped with quiet precision." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* CSS Variables & Tokens */
+    :root {
+      --background: #ffffff;
+      --foreground: #111111;
+      --ink: #0a0a0a;
+      --muted: #8d8d8d;
+      --subtle: #b6b6b6;
+      --line: #e6e5e2;
+      --surface: #f1f0ee;
+      --surface-2: #e3e2df;
+      --accent: #b15f2c;
+      --accent-from: #cf8047;
+      --accent-to: #97501f;
+      --hero-from: #ecebe9;
+      --hero-to: #c9c9c9;
+      --radius-pill: 9999px;
+      --radius-card: 2rem;
+      --radius-card-sm: 1.25rem;
+      --radius-control: 0.875rem;
+      --text-watermark: 13rem;
+      --container-shell: 88rem;
+    }
+
+    /* Global Reset & Base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { background: var(--background); color: var(--foreground); font-family: 'Onest', sans-serif; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+    ul { list-style: none; }
+    img { display: block; max-width: 100%; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Rem-based adaptive grid media queries */
+    @media (max-width: 1920px) { html { font-size: 0.833333vw; } }
+    @media (max-width: 1440px) { html { font-size: 1.111111vw; } }
+    @media (max-width: 1024px) { html { font-size: 1.5625vw; } }
+    @media (max-width: 640px)  { html { font-size: 4.444444vw; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    /* Common Layout & Container Shell */
+    .shell {
+      width: 100%;
+      max-width: var(--container-shell);
+      margin-inline: auto;
+      padding-inline: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .shell { padding-inline: 2rem; }
+    }
+
+    /* Skip link */
+    .skip-link {
+      position: fixed;
+      left: 1rem;
+      top: -100px;
+      z-index: 200;
+      background: var(--ink);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-control);
+      font-size: 0.875rem;
+      transition: top 0.2s ease;
+    }
+    .skip-link:focus { top: 1rem; }
+
+    /* SVG utility sizing */
+    .icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      vertical-align: -0.125em;
+    }
+
+    /* Shared Component: Eyebrow */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .eyebrow .dot {
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+    .eyebrow--dark { color: rgba(17,17,17,0.7); }
+    .eyebrow--dark .dot { background: rgba(17,17,17,0.5); }
+    .eyebrow--light { color: rgba(255,255,255,0.7); }
+    .eyebrow--light .dot { background: rgba(255,255,255,0.6); }
+
+    /* Shared Component: PillButton */
+    .pill-btn {
+      display: inline-block;
+      cursor: pointer;
+      border-radius: var(--radius-pill);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .pill-btn:hover { transform: scale(1.04); }
+    }
+    .pill-btn__inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.875rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .pill-btn--dark .pill-btn__inner {
+      background: var(--ink);
+      color: #ffffff;
+    }
+    .pill-btn--light .pill-btn__inner {
+      background: var(--surface);
+      color: #111111;
+    }
+    .pill-btn--outline .pill-btn__inner {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: #111111;
+    }
+    .pill-btn--no-arrow .pill-btn__inner {
+      padding: 0.875rem 1.75rem;
+    }
+    .pill-btn--with-arrow .pill-btn__inner {
+      padding: 0.375rem 0.375rem 0.375rem 1.5rem;
+    }
+    .pill-btn__badge {
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .pill-btn--dark .pill-btn__badge {
+      background: #ffffff;
+      color: var(--ink);
+    }
+    .pill-btn--light .pill-btn__badge,
+    .pill-btn--outline .pill-btn__badge {
+      background: var(--ink);
+      color: #ffffff;
+    }
+    .pill-btn__icon {
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .pill-btn:hover .pill-btn__icon--right { transform: translate(3px, 0); }
+      .pill-btn:hover .pill-btn__icon--up-right { transform: translate(2px, -2px); }
+    }
+
+    /* Tag Chip */
+    .tag-chip {
+      display: inline-flex;
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: var(--radius-pill);
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 400;
+    }
+
+    /* Animated Link */
+    .anim-link {
+      display: inline-flex;
+      align-items: center;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+      opacity: 0.65;
+    }
+    @media (hover: hover) {
+      .anim-link:hover {
+        transform: translateX(4px);
+        opacity: 1;
+      }
+    }
+    .anim-link--legal {
+      opacity: 0.7;
+    }
+    @media (hover: hover) {
+      .anim-link--legal:hover {
+        transform: translateX(3px);
+        opacity: 1;
+      }
+    }
+
+    /* Text Reveal Masks & Wrappers */
+    .line-mask {
+      display: block;
+      overflow: hidden;
+    }
+    .line-child {
+      display: block;
+      transform: translateY(105%);
+      opacity: 0;
+      transition: transform 0.9s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.9s cubic-bezier(0.215, 0.61, 0.355, 1);
+      will-change: transform, opacity;
+    }
+    .line-child.is-revealed {
+      transform: translateY(0%);
+      opacity: 1;
+    }
+
+    .word-reveal-wrap {
+      display: inline;
+    }
+    .word-child {
+      display: inline-block;
+      transform: translateY(24px);
+      opacity: 0;
+      transition: transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+      will-change: transform, opacity;
+    }
+    .word-child.is-revealed {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Page Loader */
+    .loader {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      background: #0a0a0a;
+      color: #fff;
+      border-radius: 0 0 2rem 2rem;
+      transform: translateY(0%);
+      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    .loader.is-exiting {
+      transform: translateY(-100%);
+    }
+    .loader__center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      text-align: center;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .loader.is-exiting .loader__center {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    .loader__brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .loader__brand { font-size: 1.875rem; }
+    }
+    .loader__tagline {
+      max-width: 24ch;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.4;
+    }
+    .loader__progress {
+      width: min(22rem, 72vw);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .loader__track {
+      width: 100%;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .loader__fill {
+      height: 100%;
+      background: #cf8047;
+      width: 0%;
+      transition: width 0.08s linear;
+    }
+    .loader__meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.45);
+    }
+    .loader__counter {
+      color: rgba(255,255,255,0.8);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Fixed Header */
+    .site-header {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(-14px);
+      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .site-header.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .site-header__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-block: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .site-header__inner { padding-block: 1.5rem; }
+    }
+    .site-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .site-brand:hover { transform: scale(1.04); }
+    }
+    .nav-primary {
+      display: none;
+    }
+    @media (min-width: 1024px) {
+      .nav-primary {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+    }
+    .nav-primary__item {
+      display: inline-block;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+      opacity: 0.8;
+    }
+    @media (hover: hover) {
+      .nav-primary__item:hover {
+        transform: translateY(-2px);
+        opacity: 1;
+      }
+    }
+    .nav-primary__item[aria-current="page"] {
+      opacity: 1;
+      font-weight: 600;
+    }
+    .site-header__right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .clock-chip {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      border: 1px solid rgba(230,229,226,0.8);
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: var(--radius-control);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      color: rgba(17,17,17,0.7);
+    }
+    @media (min-width: 768px) {
+      .clock-chip { display: flex; }
+    }
+    .clock-chip__label { color: rgba(17,17,17,0.45); }
+    .clock-chip__time {
+      min-width: 3.5rem;
+      font-weight: 500;
+      color: #111;
+      font-variant-numeric: tabular-nums;
+    }
+    .clock-chip__dot { color: rgba(17,17,17,0.3); }
+    .clock-chip__date { font-weight: 500; }
+    .menu-btn {
+      border: 1px solid rgba(230,229,226,0.8);
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: var(--radius-control);
+      transition: background 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .menu-btn:hover {
+        background: rgba(255,255,255,0.7);
+        transform: scale(1.05);
+      }
+    }
+    .menu-btn__inner {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .menu-btn__text {
+      display: none;
+    }
+    @media (min-width: 640px) {
+      .menu-btn__text { display: inline; }
+    }
+
+    /* Section 1: Hero (#home) */
+    .hero-sec {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-radius: 0 0 var(--radius-card) var(--radius-card);
+      background: var(--hero-to);
+    }
+    .liquid-reveal {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .liquid-reveal__base {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .liquid-reveal__canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent, rgba(255,255,255,0.35));
+    }
+    .hero-watermark {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 7rem;
+      z-index: 1;
+      text-align: center;
+      user-select: none;
+      pointer-events: none;
+      font-weight: 700;
+      line-height: 1;
+      font-size: var(--text-watermark);
+      color: rgba(255,255,255,0.4);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-watermark.is-in {
+      opacity: 0.4;
+      transform: translateY(0);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding-top: 7rem;
+      padding-bottom: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .hero-content {
+        display: grid;
+        min-height: 100vh;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2.5rem;
+        padding-top: 9rem;
+        padding-bottom: 7rem;
+        align-items: center;
+      }
+    }
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+    @media (min-width: 1024px) {
+      .hero-left { grid-column: span 7; }
+    }
+    .hero-eyebrow {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .hero-eyebrow.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero-title {
+      max-width: 18ch;
+      font-size: 2.25rem;
+      font-weight: 600;
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+    }
+    @media (min-width: 640px) {
+      .hero-title { font-size: 3rem; }
+    }
+    @media (min-width: 768px) {
+      .hero-title { font-size: 3.75rem; }
+    }
+    .hero-rating {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .hero-rating.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero-rating__stars {
+      color: var(--accent);
+      display: inline-flex;
+      gap: 0.15rem;
+      font-size: 1rem;
+    }
+    .hero-rating__text {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(17,17,17,0.7);
+    }
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .hero-ctas.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .hero-right {
+        grid-column: span 5;
+        align-items: flex-end;
+      }
+    }
+
+    /* Hero Carousel Card */
+    .hero-card {
+      width: 100%;
+      max-width: 24rem;
+      border-radius: var(--radius-card-sm);
+      background: rgba(255,255,255,0.7);
+      padding: 0.5rem;
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.06);
+      box-shadow: inset 0 0 0 1px rgba(230,229,226,0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      opacity: 0;
+      transform: translateY(16px) scale(0.96);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 1024px) {
+      .hero-card { width: 19rem; }
+    }
+    .hero-card.is-in {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .hero-card__inner {
+      display: flex;
+      gap: 0.5rem;
+      cursor: pointer;
+      border-radius: var(--radius-control);
+    }
+    .hero-card__tile {
+      aspect-ratio: 1;
+      width: 6rem;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-control);
+      background: var(--ink);
+      font-size: 1.875rem;
+      color: #cf8047;
+      flex-shrink: 0;
+    }
+    .hero-card__panel {
+      flex: 1;
+      border-radius: var(--radius-control);
+      background: rgba(241,240,238,0.7);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .hero-card__content-slot {
+      position: relative;
+      min-height: 3.25rem;
+    }
+    .hero-card__item {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    .hero-card__item.is-active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .hero-card__item.is-leaving-up {
+      opacity: 0;
+      transform: translateY(-14px);
+    }
+    .hero-card__item.is-leaving-down {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    .hero-card__caption {
+      font-size: 0.65rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(17,17,17,0.45);
+    }
+    .hero-card__item-title {
+      max-width: 8rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--foreground);
+    }
+    .hero-card__bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+    .hero-card__dashes {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .hero-card__dash {
+      height: 0.25rem;
+      border-radius: 9999px;
+      transition: all 0.3s ease;
+      background: rgba(17,17,17,0.2);
+      width: 0.375rem;
+    }
+    .hero-card__dash.is-active {
+      width: 1rem;
+      background: rgba(17,17,17,0.7);
+    }
+    .hero-card__nav {
+      display: flex;
+      gap: 0.25rem;
+    }
+    .hero-card__nav-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: #ffffff;
+      color: rgba(17,17,17,0.7);
+      box-shadow: 0 0 0 1px var(--line);
+      font-size: 0.75rem;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    @media (hover: hover) {
+      .hero-card__nav-btn:hover {
+        color: #111;
+        transform: scale(1.08);
+      }
+    }
+    .hero-card__nav-btn--prev svg { transform: rotate(180deg); }
+
+    /* Partners */
+    .hero-partners {
+      width: 100%;
+      max-width: 24rem;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 1024px) {
+      .hero-partners {
+        width: 19rem;
+      }
+    }
+    .hero-partners.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero-partners__label {
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgba(17,17,17,0.45);
+      text-align: left;
+    }
+    @media (min-width: 1024px) {
+      .hero-partners__label { text-align: right; }
+    }
+    .hero-partners__list {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 1rem;
+      row-gap: 0.75rem;
+    }
+    .hero-partners__item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      color: rgba(17,17,17,0.7);
+      white-space: nowrap;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+      opacity: 0.7;
+    }
+    @media (hover: hover) {
+      .hero-partners__item:hover {
+        transform: translateY(-2px);
+        opacity: 1;
+      }
+    }
+
+    /* Hero bottom status bar */
+    .hero-status-bar {
+      border-top: 1px solid rgba(17,17,17,0.1);
+      padding-block: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(17,17,17,0.6);
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .hero-status-bar.is-in {
+      opacity: 1;
+    }
+    .hero-status-bar__center {
+      display: none;
+    }
+    @media (min-width: 640px) {
+      .hero-status-bar__center { display: inline; }
+    }
+    .hero-status-bar__right {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Section 2: About (#about) */
+    .about-sec {
+      background: #ffffff;
+    }
+    .about-sec__inner {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: center;
+      gap: 3rem;
+      padding-block: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .about-sec__inner {
+        grid-template-columns: 1fr 1fr;
+        padding-block: 7rem;
+      }
+    }
+    .about-left {
+      position: relative;
+      min-height: 14rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    @media (min-width: 1024px) {
+      .about-left { min-height: 20rem; }
+    }
+    .about-globe-bg {
+      position: absolute;
+      left: -1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12rem;
+      color: rgba(17,17,17,0.08);
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+    }
+    @media (min-width: 640px) {
+      .about-globe-bg { font-size: 16rem; }
+    }
+    @media (min-width: 1024px) {
+      .about-globe-bg {
+        left: -1.5rem;
+        font-size: 20rem;
+      }
+    }
+    .about-eyebrow {
+      position: relative;
+      z-index: 1;
+    }
+    .about-location {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: rgba(17,17,17,0.7);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.7s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    .about-location.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .about-location__icon {
+      font-size: 1.5rem;
+      color: #111;
+      flex-shrink: 0;
+    }
+    .about-location__text {
+      max-width: 14rem;
+      line-height: 1.4;
+    }
+    .about-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+    .about-statement {
+      font-size: 1.5rem;
+      font-weight: 500;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .about-statement { font-size: 1.875rem; }
+    }
+    .about-statement--dim {
+      color: var(--muted);
+    }
+    .about-footer-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1.5rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1.5rem;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.7s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    .about-footer-row.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .about-social {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .about-social__label {
+      font-size: 0.875rem;
+      color: rgba(17,17,17,0.45);
+    }
+    .about-social__chips {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .social-chip {
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .social-chip:hover {
+        transform: scale(1.18);
+      }
+    }
+    .social-chip--accent {
+      background: var(--accent);
+      color: #fff;
+    }
+    .social-chip--surface {
+      background: var(--surface);
+      color: rgba(17,17,17,0.7);
+    }
+
+    /* Section 3: CreateBand ("We Build -> Better") */
+    .create-band {
+      background: #ffffff;
+      padding-block: 2.5rem;
+    }
+    .create-band__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    @media (min-width: 640px) {
+      .create-band__list {
+        flex-direction: row;
+        gap: 1rem;
+      }
+    }
+    .create-band__item {
+      flex: 1;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .create-band__item.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .create-tile {
+      display: grid;
+      place-items: center;
+      height: 6rem;
+      border-radius: var(--radius-pill);
+      font-size: 1.875rem;
+      font-weight: 500;
+      user-select: none;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (min-width: 640px) {
+      .create-tile {
+        height: 10rem;
+        font-size: 2.25rem;
+      }
+    }
+    @media (hover: hover) {
+      .create-tile:hover {
+        transform: scale(1.03);
+      }
+    }
+    .create-tile--light {
+      background: var(--surface);
+      color: #111;
+    }
+    .create-tile--accent {
+      background: linear-gradient(to bottom right, #cf8047, #97501f);
+      color: #fff;
+    }
+    .create-tile--dark {
+      background: var(--ink);
+      color: #fff;
+    }
+    .create-tile--dark svg {
+      font-size: 2.25rem;
+    }
+    @media (min-width: 640px) {
+      .create-tile--dark svg { font-size: 3rem; }
+    }
+    .create-tile--ghost {
+      background: rgba(241,240,238,0.6);
+      color: rgba(17,17,17,0.35);
+    }
+
+    /* Section 4: Portfolio (#works) */
+    .portfolio-sec {
+      background: #ffffff;
+      padding-block: 2.5rem 5rem;
+    }
+    @media (min-width: 1024px) {
+      .portfolio-sec { padding-bottom: 7rem; }
+    }
+    .portfolio-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .portfolio-eyebrow {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      padding: 0.375rem 1rem;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .portfolio-eyebrow.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .portfolio-title {
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    @media (min-width: 640px) {
+      .portfolio-title { font-size: 3rem; }
+    }
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .portfolio-item {
+      opacity: 0;
+      transform: translateY(48px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .portfolio-item.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .portfolio-card {
+      position: relative;
+      min-height: 22rem;
+      overflow: hidden;
+      border-radius: var(--radius-card);
+      background: var(--ink);
+      padding: 1.5rem;
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (min-width: 640px) {
+      .portfolio-card {
+        min-height: 26rem;
+        padding: 2rem;
+      }
+    }
+    @media (hover: hover) {
+      .portfolio-card:hover {
+        transform: translateY(-8px) scale(1.012);
+      }
+    }
+    .portfolio-card__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255,255,255,0.45);
+      position: relative;
+      z-index: 2;
+    }
+    .portfolio-card__badge {
+      width: 2.75rem;
+      height: 2.75rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      font-size: 1.125rem;
+    }
+    @media (hover: hover) {
+      .portfolio-card:hover .portfolio-card__badge {
+        transform: rotate(45deg) scale(1.08);
+      }
+    }
+    .portfolio-card__watermark {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      user-select: none;
+      font-size: 4.5rem;
+      color: rgba(255,255,255,0.9);
+      z-index: 1;
+      opacity: 0.12;
+    }
+    .portfolio-card__r {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      vertical-align: super;
+      margin-left: 0.2rem;
+    }
+    .portfolio-card__bottom {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+    }
+    .portfolio-card__name {
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .portfolio-card__name { font-size: 1.875rem; }
+    }
+    .portfolio-card__desc {
+      margin-top: 0.5rem;
+      max-width: 28rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.45;
+    }
+    .portfolio-card__tags {
+      margin-top: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* Section 5: Services (#services) */
+    .services-sec {
+      background: #ffffff;
+      padding-block: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .services-sec { padding-block: 7rem; }
+    }
+    .services-eyebrow {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .services-eyebrow.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .services-title {
+      margin: 1.25rem 0 3rem;
+      max-width: 16ch;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    @media (min-width: 640px) {
+      .services-title {
+        margin-bottom: 3.5rem;
+        font-size: 3rem;
+      }
+    }
+    .services-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .services-item {
+      border-top: 1px solid var(--line);
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .services-item:first-child { border-top: none; }
+    .services-item.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .services-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-radius: var(--radius-card-sm);
+      padding-block: 1.5rem;
+      padding-inline: 1.5rem;
+      background: rgba(241,240,238,0);
+      transition: background 0.35s ease, padding 0.35s ease;
+    }
+    @media (min-width: 640px) {
+      .services-row {
+        gap: 1.5rem;
+        padding-block: 2rem;
+      }
+    }
+    @media (hover: hover) {
+      .services-row:hover {
+        background: rgba(241,240,238,1);
+        padding-left: 2rem;
+        padding-right: 1.25rem;
+      }
+    }
+    .services-row__num {
+      width: 1.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(17,17,17,0.4);
+      flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+      .services-row__num { width: 2.5rem; }
+    }
+    .services-row__title {
+      flex: 1;
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .services-row__title { font-size: 1.875rem; }
+    }
+    @media (min-width: 768px) {
+      .services-row__title { font-size: 2.25rem; }
+    }
+    .services-row__desc {
+      display: none;
+      max-width: 20rem;
+      font-size: 0.875rem;
+      color: rgba(17,17,17,0.55);
+      line-height: 1.4;
+    }
+    @media (min-width: 1024px) {
+      .services-row__desc { display: block; }
+    }
+    .services-row__badge {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (min-width: 640px) {
+      .services-row__badge { width: 3rem; height: 3rem; font-size: 1.125rem; }
+    }
+    @media (hover: hover) {
+      .services-row:hover .services-row__badge {
+        transform: translateX(5px);
+      }
+    }
+
+    /* Section 6: Stats (Black panel) */
+    .stats-sec {
+      background: #ffffff;
+      padding-bottom: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .stats-sec { padding-bottom: 7rem; }
+    }
+    .stats-panel {
+      border-radius: var(--radius-card);
+      background: var(--ink);
+      padding: 3rem 1.5rem;
+      color: #fff;
+      opacity: 0;
+      transform: translateY(40px) scale(0.99);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 640px) {
+      .stats-panel { padding: 4rem 2rem; }
+    }
+    @media (min-width: 768px) {
+      .stats-panel { padding-inline: 4rem; }
+    }
+    .stats-panel.is-in {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .stats-title {
+      margin-top: 1rem;
+      max-width: 20ch;
+      font-size: 1.875rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 768px) {
+      .stats-title { font-size: 2.25rem; }
+    }
+    .stats-grid {
+      margin-top: 3.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 2rem;
+      row-gap: 3rem;
+    }
+    @media (min-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stats-item {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stats-item.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .stats-num {
+      font-size: 3rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    @media (min-width: 640px) {
+      .stats-num { font-size: 3.75rem; }
+    }
+    @media (min-width: 768px) {
+      .stats-num { font-size: 4.5rem; }
+    }
+    .stats-label {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.55);
+    }
+
+    /* Section 7: Footer */
+    .site-footer {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-card) var(--radius-card) 0 0;
+      background: var(--ink);
+      color: #fff;
+    }
+    .footer-inner {
+      position: relative;
+      z-index: 10;
+      padding-top: 5rem;
+      padding-bottom: 2.5rem;
+    }
+    @media (min-width: 1024px) {
+      .footer-inner { padding-top: 6rem; }
+    }
+    .footer-cta {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 4rem;
+    }
+    @media (min-width: 1024px) {
+      .footer-cta {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+    }
+    .footer-cta__title {
+      max-width: 16ch;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    @media (min-width: 640px) {
+      .footer-cta__title { font-size: 3rem; }
+    }
+    @media (min-width: 768px) {
+      .footer-cta__title { font-size: 3.75rem; }
+    }
+    .footer-columns {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      padding-block: 4rem;
+    }
+    @media (min-width: 768px) {
+      .footer-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .footer-columns { grid-template-columns: repeat(4, 1fr); }
+    }
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .footer-brand__name {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .footer-brand__tagline {
+      max-width: 20rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.45;
+    }
+    .footer-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .footer-col__title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255,255,255,0.4);
+    }
+    .footer-col__links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .footer-legal {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 2rem;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+    }
+    @media (min-width: 640px) {
+      .footer-legal { flex-direction: row; }
+    }
+    .footer-legal__links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .footer-watermark {
+      position: absolute;
+      inset-inline: 0;
+      bottom: -1.5rem;
+      z-index: 0;
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+      font-weight: 700;
+      line-height: 1;
+      font-size: var(--text-watermark);
+      color: rgba(255,255,255,0.05);
+    }
+
+    /* Overlay: NavMenu */
+    .nav-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 115;
+      display: flex;
+      flex-direction: column;
+      background: var(--ink);
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .nav-overlay__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-block: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .nav-overlay__top { padding-block: 1.5rem; }
+    }
+    .nav-overlay__close {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-control);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.7);
+      transition: border-color 0.25s, color 0.25s;
+    }
+    @media (hover: hover) {
+      .nav-overlay__close:hover {
+        border-color: rgba(255,255,255,0.4);
+        color: #fff;
+      }
+    }
+    .nav-overlay__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .nav-overlay__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .nav-overlay__link {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding-block: 0.5rem;
+      text-align: left;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      width: 100%;
+      transform: translateY(1rem);
+      opacity: 0;
+      transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    }
+    @media (min-width: 640px) {
+      .nav-overlay__link { font-size: 3.75rem; }
+    }
+    .nav-overlay.is-open .nav-overlay__link {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .nav-overlay__idx {
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(255,255,255,0.3);
+      transition: color 0.3s;
+    }
+    .nav-overlay__label {
+      color: rgba(255,255,255,0.7);
+      transition: color 0.3s;
+    }
+    @media (hover: hover) {
+      .nav-overlay__link:hover .nav-overlay__idx { color: #cf8047; }
+      .nav-overlay__link:hover .nav-overlay__label { color: #fff; }
+    }
+    .nav-overlay__bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-block: 1.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255,255,255,0.45);
+    }
+    @media (min-width: 640px) {
+      .nav-overlay__bottom {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+    .nav-overlay__cta {
+      color: rgba(255,255,255,0.7);
+      transition: color 0.2s, text-decoration 0.2s;
+    }
+    @media (hover: hover) {
+      .nav-overlay__cta:hover {
+        color: #fff;
+        text-decoration: underline;
+      }
+    }
+
+    /* Overlay: RequestModal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(17,17,17,0.3);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    @media (min-width: 640px) {
+      .modal-backdrop { align-items: center; }
+    }
+    .modal-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-panel {
+      position: relative;
+      width: 100%;
+      max-width: 32rem;
+      overflow: hidden;
+      border-radius: var(--radius-card);
+      background: #ffffff;
+      padding: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      box-shadow: inset 0 0 0 1px var(--line);
+      transform: translateY(28px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 640px) {
+      .modal-panel { padding: 2rem; }
+    }
+    .modal-backdrop.is-open .modal-panel {
+      transform: translateY(0);
+    }
+    .modal-close {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: var(--surface);
+      color: rgba(17,17,17,0.6);
+      transition: background 0.2s, color 0.2s;
+      z-index: 10;
+    }
+    @media (hover: hover) {
+      .modal-close:hover {
+        background: var(--surface-2);
+        color: #111;
+      }
+    }
+    .modal-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .modal-header__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(17,17,17,0.6);
+    }
+    .modal-header__dot {
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: 9999px;
+      background: var(--accent);
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .modal-title { font-size: 1.875rem; }
+    }
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .modal-field__label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(17,17,17,0.5);
+    }
+    .modal-input, .modal-textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(241,240,238,0.5);
+      border-radius: var(--radius-control);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--foreground);
+      outline: none;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    .modal-input:focus, .modal-textarea:focus {
+      border-color: rgba(17,17,17,0.3);
+      background: #ffffff;
+    }
+    .modal-textarea {
+      resize: none;
+    }
+    .modal-footer {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .modal-note {
+      font-size: 0.75rem;
+      color: rgba(17,17,17,0.45);
+    }
+    .modal-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-block: 2rem;
+      gap: 1rem;
+    }
+    .modal-success.is-active {
+      display: flex;
+    }
+    .modal-success__badge {
+      width: 3.5rem;
+      height: 3.5rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: var(--ink);
+      color: #cf8047;
+      font-size: 1.5rem;
+    }
+    .modal-success__title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .modal-success__desc {
+      max-width: 32ch;
+      font-size: 0.875rem;
+      color: rgba(17,17,17,0.6);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <!-- Accessible Skip Link -->
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <!-- Page Loader -->
+  <aside id="pageLoader" class="loader" role="status" aria-live="polite">
+    <div class="loader__center">
+      <div class="loader__brand">
+        <svg class="icon" viewBox="0 0 48 48" fill="#cf8047" style="font-size:1.875rem" aria-hidden="true">
+          <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+        </svg>
+        <span>Lumora</span>
+      </div>
+      <p class="loader__tagline">Bold ideas, shipped with quiet precision.</p>
+    </div>
+    <div class="loader__progress">
+      <div class="loader__track">
+        <div id="loaderFill" class="loader__fill"></div>
+      </div>
+      <div class="loader__meta">
+        <span>Loading</span>
+        <span id="loaderCounter" class="loader__counter">000</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Fixed Header -->
+  <header id="siteHeader" class="site-header">
+    <div class="shell site-header__inner">
+      <!-- Left brand button -->
+      <button type="button" class="site-brand" data-scroll="home" aria-label="Lumora Home">
+        <svg class="icon" viewBox="0 0 48 48" fill="#b15f2c" style="font-size:1.25rem" aria-hidden="true">
+          <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+        </svg>
+        <span>Lumora</span>
+      </button>
+
+      <!-- Center primary navigation -->
+      <nav class="nav-primary" aria-label="Main Navigation">
+        <button type="button" class="nav-primary__item" data-scroll="home" aria-current="page">Home</button>
+        <button type="button" class="nav-primary__item" data-scroll="works">Work</button>
+        <button type="button" class="nav-primary__item" data-scroll="services">
+          Services <span style="font-size:0.75rem; opacity:0.6; margin-left:0.2rem">▾</span>
+        </button>
+        <button type="button" class="nav-primary__item" data-scroll="about">Studio</button>
+        <button type="button" class="nav-primary__item" data-scroll="careers">Careers</button>
+        <button type="button" class="nav-primary__item" data-open-modal="request">Contact</button>
+      </nav>
+
+      <!-- Right clock chip + Menu button -->
+      <div class="site-header__right">
+        <div class="clock-chip" aria-label="Local clock">
+          <span class="clock-chip__label">Local time</span>
+          <span id="headerLiveTime" class="clock-chip__time">9:41am</span>
+          <span class="clock-chip__dot">•</span>
+          <span id="headerLiveDate" class="clock-chip__date">12 March, 2025</span>
+        </div>
+        <button type="button" id="openMenuBtn" class="menu-btn" aria-label="Open menu">
+          <span class="menu-btn__inner">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="font-size:0.875rem" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            <span class="menu-btn__text">Menu</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Flow -->
+  <main id="main">
+    <!-- SECTION 1: Hero (#home) -->
+    <section id="home" class="hero-sec">
+      <!-- Full-bleed Liquid Reveal Container -->
+      <div id="liquidReveal" class="liquid-reveal">
+        <!-- Always visible base photo (beforeSrc) -->
+        <img class="liquid-reveal__base" src="https://api.getlayers.ai/storage/v1/object/public/public/assets/lumora-e8b711fc68/hero/after.jpg" alt="Lumora Studio Hero Interior" />
+        <!-- Soft brush cursor trail canvas -->
+        <canvas id="liquidCanvas" class="liquid-reveal__canvas" aria-hidden="true"></canvas>
+      </div>
+
+      <!-- Legibility vignette -->
+      <div class="hero-vignette" aria-hidden="true"></div>
+
+      <!-- Brand Watermark -->
+      <div id="heroWatermark" class="hero-watermark" aria-hidden="true">LUMORA</div>
+
+      <!-- Hero Grid Content -->
+      <div class="shell hero-content">
+        <!-- Left Column -->
+        <div class="hero-left">
+          <div id="heroEyebrow" class="hero-eyebrow">
+            <span class="eyebrow eyebrow--dark">
+              <span class="dot"></span>
+              <span>Independent Studio</span>
+            </span>
+          </div>
+
+          <h1 id="heroH1" class="hero-title" aria-label="Bold ideas, shipped with quiet precision">
+            <span class="line-mask"><span class="line-child">Bold ideas,</span></span>
+            <span class="line-mask"><span class="line-child">shipped with</span></span>
+            <span class="line-mask"><span class="line-child">quiet precision</span></span>
+          </h1>
+
+          <div id="heroRating" class="hero-rating">
+            <span class="hero-rating__stars" aria-hidden="true">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+            </span>
+            <span class="hero-rating__text">200+ brands shipped</span>
+          </div>
+
+          <div id="heroCtas" class="hero-ctas">
+            <button type="button" class="pill-btn pill-btn--dark pill-btn--with-arrow" data-open-modal="request">
+              <span class="pill-btn__inner">
+                <span>Let's Talk</span>
+                <span class="pill-btn__badge">
+                  <svg class="icon pill-btn__icon pill-btn__icon--right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                  </svg>
+                </span>
+              </span>
+            </button>
+            <button type="button" class="pill-btn pill-btn--outline pill-btn--no-arrow" data-scroll="works">
+              <span class="pill-btn__inner">
+                <span>View Work</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="hero-right">
+          <!-- HeroCard Carousel -->
+          <div id="heroCard" class="hero-card">
+            <div id="heroCardClickable" class="hero-card__inner">
+              <div class="hero-card__tile">
+                <svg class="icon" viewBox="0 0 48 48" fill="#cf8047" style="font-size:2rem" aria-hidden="true">
+                  <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+                </svg>
+              </div>
+              <div class="hero-card__panel">
+                <div class="hero-card__content-slot">
+                  <div class="hero-card__item is-active" data-idx="0">
+                    <span class="hero-card__caption">Conversion design</span>
+                    <span class="hero-card__item-title">Crafted to convert.</span>
+                  </div>
+                  <div class="hero-card__item" data-idx="1">
+                    <span class="hero-card__caption">Engineering</span>
+                    <span class="hero-card__item-title">Built to scale.</span>
+                  </div>
+                  <div class="hero-card__item" data-idx="2">
+                    <span class="hero-card__caption">Brand systems</span>
+                    <span class="hero-card__item-title">Designed to last.</span>
+                  </div>
+                </div>
+                <div class="hero-card__bottom">
+                  <div class="hero-card__dashes">
+                    <span class="hero-card__dash is-active" data-dash="0"></span>
+                    <span class="hero-card__dash" data-dash="1"></span>
+                    <span class="hero-card__dash" data-dash="2"></span>
+                  </div>
+                  <div class="hero-card__nav">
+                    <button type="button" id="heroCardPrev" class="hero-card__nav-btn hero-card__nav-btn--prev" aria-label="Previous slide">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
+                      </svg>
+                    </button>
+                    <button type="button" id="heroCardNext" class="hero-card__nav-btn" aria-label="Next slide">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Partners Block -->
+          <div id="heroPartners" class="hero-partners">
+            <div class="hero-partners__label">Trusted by</div>
+            <div class="hero-partners__list">
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Kaido</span>
+              </span>
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Northpeak</span>
+              </span>
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Vellum</span>
+              </span>
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Orbit</span>
+              </span>
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Brightline</span>
+              </span>
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Cobalt</span>
+              </span>
+              <span class="hero-partners__item">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:rgba(17,17,17,0.4); font-size:0.875rem"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Mesa</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Status Bar -->
+      <div id="heroStatusBar" class="shell hero-status-bar">
+        <span>Working since 2014</span>
+        <span class="hero-status-bar__center">Remote-first, worldwide</span>
+        <span class="hero-status-bar__right">
+          <span>Scroll to explore</span>
+          <span aria-hidden="true">↓</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- SECTION 2: About (#about) -->
+    <section id="about" class="about-sec">
+      <div class="shell about-sec__inner">
+        <!-- Left Globe Column -->
+        <div class="about-left">
+          <div class="about-globe-bg" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9.25"/>
+              <path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/>
+            </svg>
+          </div>
+          <div class="about-eyebrow">
+            <span class="eyebrow eyebrow--dark">
+              <span class="dot"></span>
+              <span>The Studio</span>
+            </span>
+          </div>
+          <div class="about-location js-reveal">
+            <svg class="icon about-location__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.25"/>
+              <path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/>
+            </svg>
+            <span class="about-location__text">A distributed team building across every time zone.</span>
+          </div>
+        </div>
+
+        <!-- Right Statement Column -->
+        <div class="about-right">
+          <h2 class="about-statement js-word-reveal">
+            <span>We partner with ambitious teams to ship </span>
+            <span class="about-statement--dim">digital products, brand systems, and the strategy that holds them together.</span>
+          </h2>
+          <div class="about-footer-row js-reveal" data-delay="200">
+            <div class="about-social">
+              <span class="about-social__label">Find us online</span>
+              <div class="about-social__chips">
+                <a href="#twitter" class="social-chip social-chip--accent" aria-label="X Twitter">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4l16 16M20 4 4 20"/>
+                  </svg>
+                </a>
+                <a href="#behance" class="social-chip social-chip--surface" aria-label="Behance">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                </a>
+                <a href="#dribbble" class="social-chip social-chip--surface" aria-label="Dribbble">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                </a>
+              </div>
+            </div>
+            <a href="#about" class="pill-btn pill-btn--outline pill-btn--with-arrow">
+              <span class="pill-btn__inner">
+                <span>About Us</span>
+                <span class="pill-btn__badge">
+                  <svg class="icon pill-btn__icon pill-btn__icon--right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                  </svg>
+                </span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: CreateBand ("We Build -> Better") -->
+    <section class="create-band" aria-label="Values Banner">
+      <ul class="shell create-band__list">
+        <li class="create-band__item js-reveal" data-delay="0">
+          <div class="create-tile create-tile--light">We</div>
+        </li>
+        <li class="create-band__item js-reveal" data-delay="120">
+          <div class="create-tile create-tile--accent">Build</div>
+        </li>
+        <li class="create-band__item js-reveal" data-delay="240">
+          <div class="create-tile create-tile--dark">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          </div>
+        </li>
+        <li class="create-band__item js-reveal" data-delay="360">
+          <div class="create-tile create-tile--ghost">Better</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- SECTION 4: Portfolio (#works) -->
+    <section id="works" class="portfolio-sec">
+      <div class="shell">
+        <div class="portfolio-header">
+          <div class="portfolio-eyebrow js-reveal">
+            <span class="eyebrow eyebrow--dark">
+              <span class="dot"></span>
+              <span>Portfolio</span>
+            </span>
+          </div>
+          <h2 class="portfolio-title js-line-reveal">
+            <span class="line-mask"><span class="line-child">Selected Work</span></span>
+          </h2>
+        </div>
+
+        <ul class="portfolio-grid">
+          <!-- Work 1: Aster Labs -->
+          <li class="portfolio-item js-reveal" data-delay="0">
+            <a href="#work-aster" class="portfolio-card">
+              <div class="portfolio-card__top">
+                <span>Branding — 2025</span>
+                <span class="portfolio-card__badge">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7M8 7h9v9"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="portfolio-card__watermark" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 48 48" fill="currentColor">
+                  <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+                </svg><span class="portfolio-card__r">®</span>
+              </div>
+              <div class="portfolio-card__bottom">
+                <h3 class="portfolio-card__name">Aster Labs</h3>
+                <p class="portfolio-card__desc">A complete identity and go-to-market system for a fast-moving research startup.</p>
+                <div class="portfolio-card__tags">
+                  <span class="tag-chip">Branding</span>
+                  <span class="tag-chip">Strategy</span>
+                  <span class="tag-chip">Design</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <!-- Work 2: Nova Finance -->
+          <li class="portfolio-item js-reveal" data-delay="90">
+            <a href="#work-nova" class="portfolio-card">
+              <div class="portfolio-card__top">
+                <span>Product — 2024</span>
+                <span class="portfolio-card__badge">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7M8 7h9v9"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="portfolio-card__watermark" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 48 48" fill="currentColor">
+                  <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+                </svg><span class="portfolio-card__r">®</span>
+              </div>
+              <div class="portfolio-card__bottom">
+                <h3 class="portfolio-card__name">Nova Finance</h3>
+                <p class="portfolio-card__desc">A finance platform reimagined — clear data, calm interfaces, and effortless flows.</p>
+                <div class="portfolio-card__tags">
+                  <span class="tag-chip">Product Design</span>
+                  <span class="tag-chip">Web App</span>
+                  <span class="tag-chip">QA</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <!-- Work 3: Helio Studio -->
+          <li class="portfolio-item js-reveal" data-delay="180">
+            <a href="#work-helio" class="portfolio-card">
+              <div class="portfolio-card__top">
+                <span>Identity — 2023</span>
+                <span class="portfolio-card__badge">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7M8 7h9v9"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="portfolio-card__watermark" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 48 48" fill="currentColor">
+                  <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+                </svg><span class="portfolio-card__r">®</span>
+              </div>
+              <div class="portfolio-card__bottom">
+                <h3 class="portfolio-card__name">Helio Studio</h3>
+                <p class="portfolio-card__desc">A bold visual identity and art direction system built to scale across every surface.</p>
+                <div class="portfolio-card__tags">
+                  <span class="tag-chip">Brand Identity</span>
+                  <span class="tag-chip">Art Direction</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <!-- Work 4: Pulse Health -->
+          <li class="portfolio-item js-reveal" data-delay="270">
+            <a href="#work-pulse" class="portfolio-card">
+              <div class="portfolio-card__top">
+                <span>Mobile — 2023</span>
+                <span class="portfolio-card__badge">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7M8 7h9v9"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="portfolio-card__watermark" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 48 48" fill="currentColor">
+                  <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+                </svg><span class="portfolio-card__r">®</span>
+              </div>
+              <div class="portfolio-card__bottom">
+                <h3 class="portfolio-card__name">Pulse Health</h3>
+                <p class="portfolio-card__desc">A wellness app grounded in research, shipped end to end from concept to release.</p>
+                <div class="portfolio-card__tags">
+                  <span class="tag-chip">Mobile App</span>
+                  <span class="tag-chip">UX Research</span>
+                  <span class="tag-chip">Development</span>
+                </div>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Services (#services) -->
+    <section id="services" class="services-sec">
+      <div class="shell">
+        <div class="services-eyebrow js-reveal">
+          <span class="eyebrow eyebrow--dark">
+            <span class="dot"></span>
+            <span>Services</span>
+          </span>
+        </div>
+        <h2 class="services-title js-line-reveal">
+          <span class="line-mask"><span class="line-child">What we do best</span></span>
+        </h2>
+
+        <ul class="services-list">
+          <!-- 01 Software Development -->
+          <li class="services-item js-reveal" data-delay="0">
+            <a href="#service-dev" class="services-row">
+              <span class="services-row__num">01</span>
+              <h3 class="services-row__title">Software Development</h3>
+              <p class="services-row__desc">Scalable web & mobile products built to last.</p>
+              <span class="services-row__badge">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7M8 7h9v9"/>
+                </svg>
+              </span>
+            </a>
+          </li>
+
+          <!-- 02 Product Design -->
+          <li class="services-item js-reveal" data-delay="80">
+            <a href="#service-design" class="services-row">
+              <span class="services-row__num">02</span>
+              <h3 class="services-row__title">Product Design</h3>
+              <p class="services-row__desc">Interfaces that feel effortless and look sharp.</p>
+              <span class="services-row__badge">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7M8 7h9v9"/>
+                </svg>
+              </span>
+            </a>
+          </li>
+
+          <!-- 03 Quality Assurance -->
+          <li class="services-item js-reveal" data-delay="160">
+            <a href="#service-qa" class="services-row">
+              <span class="services-row__num">03</span>
+              <h3 class="services-row__title">Quality Assurance</h3>
+              <p class="services-row__desc">Rigorous testing for flawless, confident releases.</p>
+              <span class="services-row__badge">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7M8 7h9v9"/>
+                </svg>
+              </span>
+            </a>
+          </li>
+
+          <!-- 04 Consulting -->
+          <li class="services-item js-reveal" data-delay="240">
+            <a href="#service-consulting" class="services-row">
+              <span class="services-row__num">04</span>
+              <h3 class="services-row__title">Consulting</h3>
+              <p class="services-row__desc">Strategy and direction for ambitious teams.</p>
+              <span class="services-row__badge">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7M8 7h9v9"/>
+                </svg>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Stats (Black Panel) -->
+    <section class="stats-sec">
+      <div class="shell">
+        <div class="stats-panel js-reveal">
+          <span class="eyebrow eyebrow--light">
+            <span class="dot"></span>
+            <span>By the numbers</span>
+          </span>
+          <h2 class="stats-title js-line-reveal">
+            <span class="line-mask"><span class="line-child">Proof in the work, not the words.</span></span>
+          </h2>
+
+          <ul class="stats-grid">
+            <li class="stats-item js-reveal" data-delay="0">
+              <div class="stats-num">
+                <span class="js-counter" data-target="150">0</span><span>+</span>
+              </div>
+              <div class="stats-label">Projects delivered</div>
+            </li>
+            <li class="stats-item js-reveal" data-delay="90">
+              <div class="stats-num">
+                <span class="js-counter" data-target="98">0</span><span>%</span>
+              </div>
+              <div class="stats-label">Client retention</div>
+            </li>
+            <li class="stats-item js-reveal" data-delay="180">
+              <div class="stats-num">
+                <span class="js-counter" data-target="12">0</span>
+              </div>
+              <div class="stats-label">Years of craft</div>
+            </li>
+            <li class="stats-item js-reveal" data-delay="270">
+              <div class="stats-num">
+                <span class="js-counter" data-target="40">0</span><span>+</span>
+              </div>
+              <div class="stats-label">Team members</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- SECTION 7: Footer -->
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <!-- Top CTA row -->
+      <div class="footer-cta">
+        <h2 class="footer-cta__title js-line-reveal">
+          <span class="line-mask"><span class="line-child">Have a project in mind?</span></span>
+          <span class="line-mask"><span class="line-child">Let's get to work.</span></span>
+        </h2>
+        <button type="button" class="pill-btn pill-btn--light pill-btn--with-arrow" data-open-modal="request">
+          <span class="pill-btn__inner">
+            <span>Start a project</span>
+            <span class="pill-btn__badge">
+              <svg class="icon pill-btn__icon pill-btn__icon--up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 17 17 7M8 7h9v9"/>
+              </svg>
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Footer 4 columns -->
+      <div class="footer-columns">
+        <div class="footer-brand">
+          <div class="footer-brand__name">
+            <svg class="icon" viewBox="0 0 48 48" fill="#cf8047" style="font-size:1.25rem" aria-hidden="true">
+              <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+            </svg>
+            <span>Lumora</span>
+          </div>
+          <p class="footer-brand__tagline">An independent studio crafting brands, products, and the systems that connect them.</p>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col__title">Company</div>
+          <div class="footer-col__links">
+            <a href="#about" class="anim-link" data-scroll="about">About</a>
+            <a href="#careers" class="anim-link" data-scroll="careers">Careers</a>
+            <a href="#partners" class="anim-link">Partners</a>
+            <a href="#contact" class="anim-link" data-open-modal="request">Contact</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col__title">Services</div>
+          <div class="footer-col__links">
+            <a href="#services" class="anim-link" data-scroll="services">Development</a>
+            <a href="#services" class="anim-link" data-scroll="services">Design</a>
+            <a href="#services" class="anim-link" data-scroll="services">Quality Assurance</a>
+            <a href="#services" class="anim-link" data-scroll="services">Consulting</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-col__title">Social</div>
+          <div class="footer-col__links">
+            <a href="#twitter" class="anim-link">X / Twitter</a>
+            <a href="#behance" class="anim-link">Behance</a>
+            <a href="#dribbble" class="anim-link">Dribbble</a>
+            <a href="#linkedin" class="anim-link">LinkedIn</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal bar -->
+      <div class="footer-legal">
+        <span>© 2025 Lumora Studio. All rights reserved.</span>
+        <div class="footer-legal__links">
+          <a href="#privacy" class="anim-link anim-link--legal">Privacy</a>
+          <a href="#terms" class="anim-link anim-link--legal">Terms</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Watermark text -->
+    <div class="footer-watermark" aria-hidden="true">LUMORA</div>
+  </footer>
+
+  <!-- NavMenu Overlay -->
+  <aside id="navOverlay" class="nav-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+    <div class="shell nav-overlay__top">
+      <div class="footer-brand__name">
+        <svg class="icon" viewBox="0 0 48 48" fill="#cf8047" style="font-size:1.25rem" aria-hidden="true">
+          <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+        </svg>
+        <span>Lumora</span>
+      </div>
+      <button type="button" id="closeMenuBtn" class="nav-overlay__close" aria-label="Close navigation">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="font-size:0.875rem" aria-hidden="true">
+          <path d="M4 4l16 16M20 4 4 20"/>
+        </svg>
+        <span>Close</span>
+      </button>
+    </div>
+
+    <div class="shell nav-overlay__body">
+      <ul class="nav-overlay__list">
+        <li>
+          <button type="button" class="nav-overlay__link" data-scroll="home">
+            <span class="nav-overlay__idx">01</span>
+            <span class="nav-overlay__label">Home</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-overlay__link" data-scroll="works">
+            <span class="nav-overlay__idx">02</span>
+            <span class="nav-overlay__label">Work</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-overlay__link" data-scroll="services">
+            <span class="nav-overlay__idx">03</span>
+            <span class="nav-overlay__label">Services</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-overlay__link" data-scroll="about">
+            <span class="nav-overlay__idx">04</span>
+            <span class="nav-overlay__label">Studio</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-overlay__link" data-scroll="careers">
+            <span class="nav-overlay__idx">05</span>
+            <span class="nav-overlay__label">Careers</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-overlay__link" data-open-modal="request">
+            <span class="nav-overlay__idx">06</span>
+            <span class="nav-overlay__label">Contact</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="shell nav-overlay__bottom">
+      <div id="navOverlayTime">Local time — 9:41am</div>
+      <button type="button" id="navOverlayStartBtn" class="nav-overlay__cta">Start a project →</button>
+    </div>
+  </aside>
+
+  <!-- Request Modal -->
+  <div id="requestModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Request consultation">
+    <div id="modalPanel" class="modal-panel">
+      <button type="button" id="closeModalBtn" class="modal-close" aria-label="Close modal">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4l16 16M20 4 4 20"/>
+        </svg>
+      </button>
+
+      <!-- Form View -->
+      <div id="modalFormView">
+        <div class="modal-header">
+          <div class="modal-header__badge">
+            <span class="modal-header__dot"></span>
+            <span>Start a project</span>
+          </div>
+          <h2 class="modal-title">Tell us what you're building.</h2>
+        </div>
+
+        <form id="projectForm" class="modal-form">
+          <div class="modal-field">
+            <label for="fieldName" class="modal-field__label">Name</label>
+            <input type="text" id="fieldName" class="modal-input" placeholder="Your name" required />
+          </div>
+          <div class="modal-field">
+            <label for="fieldEmail" class="modal-field__label">Email</label>
+            <input type="email" id="fieldEmail" class="modal-input" placeholder="you@company.com" required />
+          </div>
+          <div class="modal-field">
+            <label for="fieldProject" class="modal-field__label">Project</label>
+            <textarea id="fieldProject" class="modal-textarea" rows="4" placeholder="A few words about your project, timeline, and budget." required></textarea>
+          </div>
+          <div class="modal-footer">
+            <span class="modal-note">We reply within one business day.</span>
+            <button type="submit" id="submitBtn" class="pill-btn pill-btn--dark pill-btn--with-arrow">
+              <span class="pill-btn__inner">
+                <span id="submitLabel">Send request</span>
+                <span class="pill-btn__badge">
+                  <svg class="icon pill-btn__icon pill-btn__icon--up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7M8 7h9v9"/>
+                  </svg>
+                </span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Success View -->
+      <div id="modalSuccessView" class="modal-success">
+        <div class="modal-success__badge">
+          <svg class="icon" viewBox="0 0 48 48" fill="#cf8047" style="font-size:1.5rem" aria-hidden="true">
+            <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+          </svg>
+        </div>
+        <h2 class="modal-success__title">Request received</h2>
+        <p class="modal-success__desc">Thanks for reaching out — we'll get back to you within one business day.</p>
+        <button type="button" id="closeSuccessBtn" class="pill-btn pill-btn--dark pill-btn--no-arrow">
+          <span class="pill-btn__inner">
+            <span>Close</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN Importmap for Lenis -->
+  <script type="importmap">
+  {
+    "imports": {
+      "lenis": "https://unpkg.com/lenis@1.3.23/dist/lenis.mjs"
+    }
+  }
+  </script>
+
+  <!-- Main Application Script -->
+  <script type="module">
+    import Lenis from 'lenis';
+
+    /* Reset scroll to top on fresh load */
+    window.scrollTo(0, 0);
+
+    /* -------------------------------------------------------------
+       1. Adaptive Grid Scaler (> 1920px)
+       ------------------------------------------------------------- */
+    function applyAdaptiveGrid() {
+      const FONT_BASE = 16, baseWidth = 1920, coef = 0.6666;
+      const w = window.innerWidth;
+      const widthReduction = ((baseWidth - w) / baseWidth) * 100;
+      const size = FONT_BASE - (FONT_BASE * (widthReduction * coef)) / 100;
+      if (size > FONT_BASE) {
+        document.documentElement.style.fontSize = size + 'px';
+      } else {
+        document.documentElement.style.removeProperty('font-size');
+      }
+    }
+    applyAdaptiveGrid();
+    window.addEventListener('resize', applyAdaptiveGrid);
+
+    /* -------------------------------------------------------------
+       2. Lenis Smooth Scrolling & Global Scroll Lock Model
+       ------------------------------------------------------------- */
+    const lenis = new Lenis({ smoothWheel: true });
+    function rafLoop(t) {
+      lenis.raf(t);
+      requestAnimationFrame(rafLoop);
+    }
+    requestAnimationFrame(rafLoop);
+
+    let scrollEnabled = true;
+    function stopScroll() {
+      scrollEnabled = false;
+      lenis.stop();
+      document.documentElement.style.position = 'relative';
+      document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.height = '100%';
+    }
+    function startScroll() {
+      scrollEnabled = true;
+      lenis.start();
+      document.documentElement.style.removeProperty('position');
+      document.documentElement.style.removeProperty('overflow');
+      document.documentElement.style.removeProperty('height');
+    }
+
+    function scrollToId(id) {
+      const target = document.getElementById(id);
+      if (!target) return;
+      lenis.stop();
+      setTimeout(() => {
+        const top = target.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
+        setTimeout(() => {
+          if (scrollEnabled) lenis.start();
+        }, 100);
+      }, 50);
+    }
+
+    // Bind data-scroll buttons
+    document.querySelectorAll('[data-scroll]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-scroll');
+        if (targetId) {
+          // If nav overlay is open, close it first
+          if (navOverlay.classList.contains('is-open')) closeNavMenu();
+          scrollToId(targetId);
+        }
+      });
+    });
+
+    /* -------------------------------------------------------------
+       3. Live Local Clock
+       ------------------------------------------------------------- */
+    const timeEl = document.getElementById('headerLiveTime');
+    const dateEl = document.getElementById('headerLiveDate');
+    const navTimeEl = document.getElementById('navOverlayTime');
+
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      const meridiem = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      const formattedTime = `${hours}:${mins}${meridiem}`;
+
+      const d = now.getDate();
+      const m = months[now.getMonth()];
+      const y = now.getFullYear();
+      const formattedDate = `${d} ${m}, ${y}`;
+
+      if (timeEl) timeEl.textContent = formattedTime;
+      if (dateEl) dateEl.textContent = formattedDate;
+      if (navTimeEl) navTimeEl.textContent = `Local time — ${formattedTime}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    /* -------------------------------------------------------------
+       4. Text Reveal Helper (Lines & Words)
+       ------------------------------------------------------------- */
+    // Split About Statement words for staggered reveal
+    const wordContainers = document.querySelectorAll('.js-word-reveal');
+    wordContainers.forEach(container => {
+      const nodes = Array.from(container.childNodes);
+      container.innerHTML = '';
+      nodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const words = node.textContent.split(/(\s+)/);
+          words.forEach(w => {
+            if (/^\s+$/.test(w)) {
+              container.appendChild(document.createTextNode(w));
+            } else if (w.length > 0) {
+              const span = document.createElement('span');
+              span.className = 'word-child';
+              span.textContent = w;
+              container.appendChild(span);
+            }
+          });
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const wrapper = document.createElement('span');
+          wrapper.className = node.className;
+          const words = node.textContent.split(/(\s+)/);
+          words.forEach(w => {
+            if (/^\s+$/.test(w)) {
+              wrapper.appendChild(document.createTextNode(w));
+            } else if (w.length > 0) {
+              const span = document.createElement('span');
+              span.className = 'word-child';
+              span.textContent = w;
+              wrapper.appendChild(span);
+            }
+          });
+          container.appendChild(wrapper);
+        }
+      });
+    });
+
+    let introReady = false;
+
+    // IntersectionObserver for elements revealed on scroll
+    const revealObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const delay = parseInt(el.getAttribute('data-delay') || '0', 10);
+          setTimeout(() => {
+            el.classList.add('is-in');
+            // Check for nested line reveals
+            el.querySelectorAll('.line-child').forEach((line, idx) => {
+              setTimeout(() => line.classList.add('is-revealed'), idx * 100);
+            });
+            // Check for word reveals
+            el.querySelectorAll('.word-child').forEach((word, idx) => {
+              setTimeout(() => word.classList.add('is-revealed'), idx * 35);
+            });
+          }, delay);
+          obs.unobserve(el);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    function initScrollReveals() {
+      document.querySelectorAll('.js-reveal, .js-word-reveal, .js-line-reveal').forEach(el => {
+        revealObserver.observe(el);
+      });
+    }
+
+    /* -------------------------------------------------------------
+       5. Page Loader Animation (000 -> 100)
+       ------------------------------------------------------------- */
+    const pageLoader = document.getElementById('pageLoader');
+    const loaderFill = document.getElementById('loaderFill');
+    const loaderCounter = document.getElementById('loaderCounter');
+
+    stopScroll(); // lock scroll on mount
+
+    const FILL_MS = 1300;
+    const startTime = performance.now();
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function animateLoader(now) {
+      const elapsed = now - startTime;
+      const rawProgress = Math.min(elapsed / FILL_MS, 1);
+      const eased = easeInOutCubic(rawProgress);
+      const count = Math.round(eased * 100);
+
+      if (loaderFill) loaderFill.style.width = count + '%';
+      if (loaderCounter) loaderCounter.textContent = String(count).padStart(3, '0');
+
+      if (rawProgress < 1) {
+        requestAnimationFrame(animateLoader);
+      } else {
+        // Count complete! Slide loader up
+        setTimeout(() => {
+          pageLoader.classList.add('is-exiting');
+
+          // After slide finishes (~750ms)
+          setTimeout(() => {
+            introReady = true;
+            startScroll();
+            if (pageLoader.parentNode) pageLoader.parentNode.removeChild(pageLoader);
+
+            // Trigger above-the-fold entrance reveals
+            triggerHeroReveals();
+            initScrollReveals();
+          }, 750);
+        }, 120);
+      }
+    }
+    requestAnimationFrame(animateLoader);
+
+    function triggerHeroReveals() {
+      // Header entrance (+150ms)
+      setTimeout(() => {
+        document.getElementById('siteHeader')?.classList.add('is-in');
+      }, 150);
+
+      // Hero eyebrow (+200ms)
+      setTimeout(() => {
+        document.getElementById('heroEyebrow')?.classList.add('is-in');
+      }, 200);
+
+      // Hero H1 lines (+250ms, stagger 120ms)
+      setTimeout(() => {
+        document.querySelectorAll('#heroH1 .line-child').forEach((line, idx) => {
+          setTimeout(() => line.classList.add('is-revealed'), idx * 120);
+        });
+      }, 250);
+
+      // Hero Watermark (+300ms)
+      setTimeout(() => {
+        document.getElementById('heroWatermark')?.classList.add('is-in');
+      }, 300);
+
+      // Hero Carousel Card (+400ms)
+      setTimeout(() => {
+        document.getElementById('heroCard')?.classList.add('is-in');
+      }, 400);
+
+      // Partners (+550ms)
+      setTimeout(() => {
+        document.getElementById('heroPartners')?.classList.add('is-in');
+      }, 550);
+
+      // Rating (+650ms)
+      setTimeout(() => {
+        document.getElementById('heroRating')?.classList.add('is-in');
+      }, 650);
+
+      // Hero CTAs (+750ms)
+      setTimeout(() => {
+        document.getElementById('heroCtas')?.classList.add('is-in');
+      }, 750);
+
+      // Bottom Status Bar (+900ms)
+      setTimeout(() => {
+        document.getElementById('heroStatusBar')?.classList.add('is-in');
+      }, 900);
+    }
+
+    /* -------------------------------------------------------------
+       6. Hero LiquidReveal Canvas (Cursor Paint Trail)
+       ------------------------------------------------------------- */
+    const canvas = document.getElementById('liquidCanvas');
+    const container = document.getElementById('liquidReveal');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (canvas && container && !prefersReducedMotion) {
+      const ctx = canvas.getContext('2d');
+      const brushRadius = 143;
+      const decay = 0.016;
+
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let width = 0, height = 0;
+      let radius = brushRadius * dpr;
+      let diam = Math.ceil(radius * 2);
+
+      // Offscreen cover canvas
+      const coverCanvas = document.createElement('canvas');
+      const coverCtx = coverCanvas.getContext('2d');
+
+      // Offscreen brush canvas
+      const brushCanvas = document.createElement('canvas');
+      const brushCtx = brushCanvas.getContext('2d');
+
+      // Load Revealed Image (afterSrc = .../hero/before.jpg)
+      const afterImg = new Image();
+      afterImg.crossOrigin = 'anonymous';
+      afterImg.src = 'https://api.getlayers.ai/storage/v1/object/public/public/assets/lumora-e8b711fc68/hero/before.jpg';
+      let afterImgLoaded = false;
+      afterImg.onload = () => {
+        afterImgLoaded = true;
+        renderCover();
+      };
+
+      function renderCover() {
+        if (!afterImgLoaded || width === 0 || height === 0) return;
+        coverCanvas.width = width;
+        coverCanvas.height = height;
+
+        // object-fit: cover math
+        const imgRatio = afterImg.naturalWidth / afterImg.naturalHeight;
+        const canvasRatio = width / height;
+        let drawW, drawH, drawX, drawY;
+
+        if (canvasRatio > imgRatio) {
+          drawW = width;
+          drawH = width / imgRatio;
+          drawX = 0;
+          drawY = (height - drawH) / 2;
+        } else {
+          drawH = height;
+          drawW = height * imgRatio;
+          drawX = (width - drawW) / 2;
+          drawY = 0;
+        }
+        coverCtx.clearRect(0, 0, width, height);
+        coverCtx.drawImage(afterImg, drawX, drawY, drawW, drawH);
+      }
+
+      function resizeCanvas() {
+        const rect = container.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.round(rect.width * dpr);
+        height = Math.round(rect.height * dpr);
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+
+        radius = brushRadius * dpr;
+        diam = Math.ceil(radius * 2);
+
+        brushCanvas.width = diam;
+        brushCanvas.height = diam;
+
+        renderCover();
+      }
+
+      const resizeObserver = new ResizeObserver(resizeCanvas);
+      resizeObserver.observe(container);
+
+      // Pointer trail handling
+      const points = [];
+      let lastPoint = null;
+      let idle = 0;
+
+      window.addEventListener('pointermove', (e) => {
+        const rect = container.getBoundingClientRect();
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+
+        // Check bounds with radius margin
+        if (
+          clientX < rect.left - brushRadius ||
+          clientX > rect.right + brushRadius ||
+          clientY < rect.top - brushRadius ||
+          clientY > rect.bottom + brushRadius
+        ) {
+          lastPoint = null;
+          return;
+        }
+
+        const canvasX = (clientX - rect.left) * dpr;
+        const canvasY = (clientY - rect.top) * dpr;
+
+        if (!lastPoint) {
+          points.push({ x: canvasX, y: canvasY });
+          lastPoint = { x: canvasX, y: canvasY };
+        } else {
+          const dx = canvasX - lastPoint.x;
+          const dy = canvasY - lastPoint.y;
+          const dist = Math.hypot(dx, dy);
+          const step = Math.max(radius * 0.3, 1);
+          const n = Math.min(Math.ceil(dist / step), 60);
+
+          for (let i = 1; i <= n; i++) {
+            points.push({
+              x: lastPoint.x + (dx * i) / n,
+              y: lastPoint.y + (dy * i) / n
+            });
+          }
+          lastPoint = { x: canvasX, y: canvasY };
+        }
+      });
+
+      function stamp(x, y) {
+        if (!afterImgLoaded) return;
+        const c = diam / 2;
+
+        // 1. Prepare soft radial gradient on brush canvas
+        brushCtx.clearRect(0, 0, diam, diam);
+        brushCtx.globalCompositeOperation = 'source-over';
+        const grad = brushCtx.createRadialGradient(c, c, 0, c, c, radius);
+        grad.addColorStop(0, 'rgba(255,255,255,1)');
+        grad.addColorStop(0.55, 'rgba(255,255,255,0.82)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        brushCtx.fillStyle = grad;
+        brushCtx.fillRect(0, 0, diam, diam);
+
+        // 2. Clip with cover pixels under brush
+        brushCtx.globalCompositeOperation = 'source-in';
+        brushCtx.drawImage(coverCanvas, x - c, y - c, diam, diam, 0, 0, diam, diam);
+
+        // 3. Stamp to main canvas
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.drawImage(brushCanvas, x - c, y - c);
+      }
+
+      function loop() {
+        const hasPoints = points.length > 0;
+        if (hasPoints) {
+          idle = 0;
+        } else {
+          idle++;
+        }
+
+        if (idle <= 120) {
+          // Fade existing trail
+          const fade = hasPoints ? decay : Math.min(decay + idle * 0.004, 0.5);
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fillStyle = `rgba(0, 0, 0, ${fade})`;
+          ctx.fillRect(0, 0, width, height);
+
+          // Stamp queued points
+          if (hasPoints) {
+            for (let i = 0; i < points.length; i++) {
+              stamp(points[i].x, points[i].y);
+            }
+            points.length = 0;
+          }
+
+          if (idle === 120) {
+            ctx.clearRect(0, 0, width, height);
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    }
+
+    /* -------------------------------------------------------------
+       7. HeroCard Carousel Cycle (Conversion, Eng, Brand)
+       ------------------------------------------------------------- */
+    const heroCardItems = document.querySelectorAll('.hero-card__item');
+    const heroCardDashes = document.querySelectorAll('.hero-card__dash');
+    const heroCardClickable = document.getElementById('heroCardClickable');
+    const heroCardPrev = document.getElementById('heroCardPrev');
+    const heroCardNext = document.getElementById('heroCardNext');
+
+    let activeHeroSlide = 0;
+    const totalHeroSlides = heroCardItems.length;
+
+    function setHeroSlide(nextIdx, direction = 'next') {
+      if (nextIdx === activeHeroSlide) return;
+      const currentEl = heroCardItems[activeHeroSlide];
+      const nextEl = heroCardItems[nextIdx];
+
+      // Remove classes
+      currentEl.classList.remove('is-active', 'is-leaving-up', 'is-leaving-down');
+      nextEl.classList.remove('is-active', 'is-leaving-up', 'is-leaving-down');
+
+      if (direction === 'next') {
+        currentEl.classList.add('is-leaving-up');
+        nextEl.style.transform = 'translateY(14px)';
+      } else {
+        currentEl.classList.add('is-leaving-down');
+        nextEl.style.transform = 'translateY(-14px)';
+      }
+
+      void nextEl.offsetWidth; // force reflow
+
+      nextEl.classList.add('is-active');
+      nextEl.style.transform = '';
+
+      heroCardDashes[activeHeroSlide].classList.remove('is-active');
+      heroCardDashes[nextIdx].classList.add('is-active');
+
+      activeHeroSlide = nextIdx;
+    }
+
+    if (heroCardClickable) {
+      heroCardClickable.addEventListener('click', (e) => {
+        // Prevent advance if clicking specific nav buttons
+        if (e.target.closest('#heroCardPrev') || e.target.closest('#heroCardNext')) return;
+        setHeroSlide((activeHeroSlide + 1) % totalHeroSlides, 'next');
+      });
+    }
+    if (heroCardNext) {
+      heroCardNext.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setHeroSlide((activeHeroSlide + 1) % totalHeroSlides, 'next');
+      });
+    }
+    if (heroCardPrev) {
+      heroCardPrev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setHeroSlide((activeHeroSlide - 1 + totalHeroSlides) % totalHeroSlides, 'prev');
+      });
+    }
+
+    /* -------------------------------------------------------------
+       8. Stats Count-Up (Scroll progress top bottom -> center center)
+       ------------------------------------------------------------- */
+    const counterElements = document.querySelectorAll('.js-counter');
+    let lastScrollTime = 0;
+
+    function checkCounters() {
+      const now = performance.now();
+      if (now - lastScrollTime < 30) return;
+      lastScrollTime = now;
+
+      const vh = window.innerHeight;
+      counterElements.forEach(counter => {
+        const rect = counter.getBoundingClientRect();
+        const top = rect.top;
+        const center = top + rect.height / 2;
+
+        // start: top at bottom of viewport (top = vh)
+        // end: center at center of viewport (center = vh / 2)
+        const startY = vh;
+        const endY = vh / 2;
+        const progress = Math.min(Math.max((startY - center) / (startY - endY), 0), 1);
+
+        const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+        counter.textContent = Math.round(progress * target);
+      });
+    }
+    window.addEventListener('scroll', checkCounters, { passive: true });
+
+    /* -------------------------------------------------------------
+       9. NavMenu Overlay Controls
+       ------------------------------------------------------------- */
+    const navOverlay = document.getElementById('navOverlay');
+    const openMenuBtn = document.getElementById('openMenuBtn');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const navOverlayStartBtn = document.getElementById('navOverlayStartBtn');
+    const navLinks = document.querySelectorAll('.nav-overlay__link');
+
+    function openNavMenu() {
+      navOverlay.classList.add('is-open');
+      navOverlay.setAttribute('aria-hidden', 'false');
+      stopScroll();
+    }
+    function closeNavMenu() {
+      navOverlay.classList.remove('is-open');
+      navOverlay.setAttribute('aria-hidden', 'true');
+      startScroll();
+    }
+
+    if (openMenuBtn) openMenuBtn.addEventListener('click', openNavMenu);
+    if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeNavMenu);
+
+    navLinks.forEach((link, idx) => {
+      link.style.transitionDelay = (idx * 45 + 80) + 'ms';
+      link.addEventListener('click', () => {
+        const targetId = link.getAttribute('data-scroll');
+        const openModal = link.getAttribute('data-open-modal');
+        closeNavMenu();
+        if (targetId) {
+          setTimeout(() => scrollToId(targetId), 200);
+        } else if (openModal) {
+          setTimeout(() => openRequestModal(), 200);
+        }
+      });
+    });
+
+    if (navOverlayStartBtn) {
+      navOverlayStartBtn.addEventListener('click', () => {
+        closeNavMenu();
+        setTimeout(() => openRequestModal(), 200);
+      });
+    }
+
+    /* -------------------------------------------------------------
+       10. RequestModal Controls & Stubbed Submit
+       ------------------------------------------------------------- */
+    const requestModal = document.getElementById('requestModal');
+    const modalPanel = document.getElementById('modalPanel');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+    const projectForm = document.getElementById('projectForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitLabel = document.getElementById('submitLabel');
+    const modalFormView = document.getElementById('modalFormView');
+    const modalSuccessView = document.getElementById('modalSuccessView');
+
+    function openRequestModal() {
+      requestModal.classList.add('is-open');
+      stopScroll();
+    }
+    function closeRequestModal() {
+      requestModal.classList.remove('is-open');
+      startScroll();
+      // Reset form after exit transition
+      setTimeout(() => {
+        modalFormView.style.display = 'block';
+        modalSuccessView.classList.remove('is-active');
+        projectForm.reset();
+        submitLabel.textContent = 'Send request';
+        submitBtn.disabled = false;
+      }, 350);
+    }
+
+    // Bind all buttons with data-open-modal="request"
+    document.querySelectorAll('[data-open-modal="request"]').forEach(el => {
+      el.addEventListener('click', openRequestModal);
+    });
+
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeRequestModal);
+    if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeRequestModal);
+
+    // Backdrop click close
+    if (requestModal) {
+      requestModal.addEventListener('click', (e) => {
+        if (e.target === requestModal) closeRequestModal();
+      });
+    }
+    if (modalPanel) {
+      modalPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    // Escape key closes overlays
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (requestModal.classList.contains('is-open')) closeRequestModal();
+        if (navOverlay.classList.contains('is-open')) closeNavMenu();
+      }
+    });
+
+    // Form submit stub
+    if (projectForm) {
+      projectForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submitLabel.textContent = 'Sending…';
+        submitBtn.disabled = true;
+
+        setTimeout(() => {
+          modalFormView.style.display = 'none';
+          modalSuccessView.classList.add('is-active');
+        }, 800);
+      });
+    }
+  </script>
+</body>
+</html>

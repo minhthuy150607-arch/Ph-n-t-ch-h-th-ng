@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - Quản Trị Thư Viện">Quản trị Thư Viện</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+</head>
+<body class="admin-body">
+
+    <!-- ===== SIDEBAR (Midnight Slate) ===== -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <!-- Logo -->
+        <div class="sidebar-header">
+            <a th:href="@{/admin/dashboard}" class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div>
+                    <div style="line-height: 1.1;">Thư Viện Số</div>
+                    <span class="sidebar-subtitle" style="padding-left: 0; margin-top: 3px;">Admin Portal</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Menu điều hướng -->
+        <nav class="sidebar-nav">
+            <!-- Tổng quan -->
+            <a th:href="@{/admin/dashboard}" class="sidebar-link"
+               th:classappend="${activeMenu == 'dashboard'} ? 'active' : ''">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Tổng quan</span>
+            </a>
+
+            <!-- Nhóm: QUẢN LÝ -->
+            <div class="sidebar-group-title">QUẢN LÝ THƯ VIỆN</div>
+
+            <a th:href="@{/admin/books}" class="sidebar-link"
+               th:classappend="${activeMenu == 'books'} ? 'active' : ''">
+                <i class="fas fa-book"></i>
+                <span>Danh mục sách</span>
+            </a>
+
+            <a th:href="@{/admin/readers}" class="sidebar-link"
+               th:classappend="${activeMenu == 'readers'} ? 'active' : ''">
+                <i class="fas fa-users"></i>
+                <span>Hồ sơ bạn đọc</span>
+            </a>
+
+            <a th:href="@{/admin/loans}" class="sidebar-link"
+               th:classappend="${activeMenu == 'loans'} ? 'active' : ''">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Mượn &amp; Trả sách</span>
+            </a>
+
+            <a th:href="@{/admin/reservations}" class="sidebar-link"
+               th:classappend="${activeMenu == 'reservations'} ? 'active' : ''">
+                <i class="fas fa-bookmark"></i>
+                <span>Hàng đợi đặt trước</span>
+            </a>
+
+            <a th:href="@{/admin/overdue}" class="sidebar-link"
+               th:classappend="${activeMenu == 'overdue'} ? 'active' : ''">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Xử lý quá hạn</span>
+                <span class="sidebar-badge" id="overdueBadge" th:if="${overdueCount != null and overdueCount > 0}"
+                      th:text="${overdueCount}">0</span>
+            </a>
+
+            <a th:href="@{/admin/rules}" class="sidebar-link"
+               th:classappend="${activeMenu == 'rules'} ? 'active' : ''">
+                <i class="fas fa-sliders-h"></i>
+                <span>Quy định mượn trả</span>
+            </a>
+
+            <a th:href="@{/admin/reports}" class="sidebar-link"
+               th:classappend="${activeMenu == 'reports'} ? 'active' : ''">
+                <i class="fas fa-chart-pie"></i>
+                <span>Báo cáo thống kê</span>
+            </a>
+
+            <!-- Nhóm: HỆ THỐNG -->
+            <div class="sidebar-group-title">HỆ THỐNG</div>
+
+            <a th:href="@{/admin/accounts}" class="sidebar-link"
+               th:classappend="${activeMenu == 'accounts'} ? 'active' : ''">
+                <i class="fas fa-user-shield"></i>
+                <span>Phân quyền tài khoản</span>
+            </a>
+
+            <a th:href="@{/home}" class="sidebar-link" target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+                <span>Xem Cổng độc giả</span>
+            </a>
+        </nav>
+
+        <!-- User info ở cuối sidebar -->
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name" sec:authentication="name">Admin</span>
+                    <span class="sidebar-user-role">Quản trị viên</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== VÙNG NỘI DUNG CHÍNH ===== -->
+    <div class="admin-content-wrapper" id="adminContentWrapper">
+
+        <!-- Header trên cùng -->
+        <header class="admin-header">
+            <div class="admin-header-left">
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <!-- Thanh tìm kiếm nhanh -->
+                <div class="admin-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm sách, bạn đọc, mã phiếu..." id="globalSearch">
+                </div>
+            </div>
+
+            <div class="admin-header-right">
+                <!-- Ngày giờ hiện tại -->
+                <div class="header-datetime" id="headerDatetime">
+                    <i class="fas fa-calendar-alt" style="color: var(--color-accent);"></i>
+                    <span id="datetimeText">--/--/----</span>
+                </div>
+
+                <!-- Thông báo -->
+                <div class="header-notification">
+                    <button class="notification-btn" id="notificationBtn" aria-label="Thông báo">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge"
+                              th:if="${overdueCount != null and overdueCount > 0}"
+                              th:text="${overdueCount}">1</span>
+                    </button>
+                </div>
+
+                <!-- Thông tin user -->
+                <div class="header-user-menu">
+                    <button class="header-user-btn" id="headerUserBtn">
+                        <div class="header-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span sec:authentication="name">Admin</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="header-user-dropdown" id="headerUserDropdown">
+                        <a th:href="@{/home}">
+                            <i class="fas fa-home"></i> Cổng độc giả
+                        </a>
+                        <a th:href="@{/admin/dashboard}">
+                            <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nội dung trang -->
+        <main class="admin-main">
+            <!-- Alert Thành công -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <i class="fas fa-check-circle" style="font-size: 1.25rem;"></i>
+                <div style="flex: 1;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; opacity: 0.7;">&times;</button>
+            </div>
+
+            <!-- Alert Lỗi -->
+            <div th:if="${errorMessage}" class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.25rem;"></i>
+                <div style="flex: 1;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+                <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; opacity: 0.7;">&times;</button>
+            </div>
+
+            <div layout:fragment="content">
+                <!-- Nội dung trang con sẽ được chèn vào đây -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay khi mở sidebar trên mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/admin.js}"></script>
+</body>
+</html>
