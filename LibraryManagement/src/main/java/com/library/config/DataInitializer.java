@@ -192,6 +192,24 @@ public class DataInitializer implements CommandLineRunner {
         // 4. BS0004: Dữ Liệu Lớn (Viktor Mayer-Schönberger) - Kệ B1 - Tầng 2 (AVAILABLE)
         createOrUpdateCopy("BS0004", "BK-010", "Kệ B1 - Tầng 2", "AVAILABLE", "GOOD");
 
+        // 5. BS0005: Clean Code (Robert C. Martin) - Kệ A2 - Tầng 1 (AVAILABLE)
+        createOrUpdateCopy("BS0005", "BK-001", "Kệ A2 - Tầng 1", "AVAILABLE", "GOOD");
+
+        // 6. BS0006: Design Patterns (GoF) - Kệ A2 - Tầng 2 (AVAILABLE)
+        createOrUpdateCopy("BS0006", "BK-002", "Kệ A2 - Tầng 2", "AVAILABLE", "GOOD");
+
+        // 7. BS0007: Spring Boot in Action (Craig Walls) - Kệ B2 - Tầng 1 (AVAILABLE)
+        createOrUpdateCopy("BS0007", "BK-003", "Kệ B2 - Tầng 1", "AVAILABLE", "GOOD");
+
+        // 8. BS0008: Tuổi Trẻ Đáng Giá Bao Nhiêu (Rosie Nguyễn) - Kệ B2 - Tầng 2 (AVAILABLE)
+        createOrUpdateCopy("BS0008", "BK-006", "Kệ B2 - Tầng 2", "AVAILABLE", "GOOD");
+
+        // 9. BS0009: Cha Giàu Cha Nghèo (Robert Kiyosaki) - Kệ C1 - Tầng 1 (AVAILABLE)
+        createOrUpdateCopy("BS0009", "BK-007", "Kệ C1 - Tầng 1", "AVAILABLE", "GOOD");
+
+        // 10. BS0010: Kinh Tế Học Hài Hước (Steven D. Levitt) - Kệ C1 - Tầng 2 (AVAILABLE)
+        createOrUpdateCopy("BS0010", "BK-008", "Kệ C1 - Tầng 2", "AVAILABLE", "GOOD");
+
         // Gán vị trí mặc định cho các bản sách cũ nếu đang null
         for (BookCopy c : bookCopyRepository.findAll()) {
             if (c.getLocation() == null || c.getLocation().trim().isEmpty()) {
