@@ -60,7 +60,8 @@ CREATE INDEX IF NOT EXISTS idx_books_status ON books(status);
 CREATE TABLE IF NOT EXISTS book_copies (
     id              BIGSERIAL       PRIMARY KEY,
     book_id         BIGINT          NOT NULL REFERENCES books(id) ON DELETE RESTRICT,
-    barcode         VARCHAR(50)     NOT NULL UNIQUE,    -- Barcode duy nhất cho từng bản
+    barcode         VARCHAR(50)     NOT NULL UNIQUE,    -- Barcode / QR duy nhất cho từng bản sách (ví dụ: BS0001)
+    location        VARCHAR(100)    DEFAULT 'Kệ A1 - Tầng 1', -- Vị trí giá sách/kệ (ví dụ: Kệ A1 - Tầng 1)
     status          VARCHAR(20)     NOT NULL DEFAULT 'AVAILABLE',
                                     -- AVAILABLE: còn sẵn
                                     -- BORROWED: đang được mượn
