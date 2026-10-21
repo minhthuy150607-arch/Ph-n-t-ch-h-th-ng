@@ -172,7 +172,11 @@
                         <p style="margin: 0; font-size: 0.8rem; color: #64748b;">Hệ thống thư viện thông minh UTH</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeClientQrLookupModal()" style="background: none; border: none; font-size: 1.6rem; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <select id="clientCameraSelect" class="form-control" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; display: none; max-width: 140px; border: 1px solid #cbd5e1;" onchange="onClientCameraSelectChange()">
+                    </select>
+                    <button type="button" onclick="closeClientQrLookupModal()" style="background: none; border: none; font-size: 1.6rem; color: #94a3b8; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
             </div>
 
             <!-- Body Modal -->
@@ -255,16 +259,41 @@
     <!-- JavaScript -->
     <script th:src="@{/js/main.js}"></script>
 
+    <style>
+        #client-qr-reader {
+            width: 100% !important;
+            border: none !important;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        #client-qr-reader video {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 360px !important;
+            object-fit: cover !important;
+            border-radius: 12px !important;
+            display: block !important;
+        }
+        #client-qr-reader__scan_region {
+            background: transparent !important;
+        }
+    </style>
+
     <script>
         let clientQrCodeScanner = null;
         let isClientScanning = false;
         let lastClientScan = '';
         let lastClientTime = 0;
+        let selectedClientCameraId = null;
 
         function openClientQrLookupModal() {
             document.getElementById('clientQrLookupModal').style.display = 'block';
             document.getElementById('clientScanAlert').style.display = 'none';
             document.getElementById('clientScanResultCard').style.display = 'none';
+            // Tự động bật camera ngay khi mở modal
+            setTimeout(() => {
+                startClientScanner();
+            }, 150);
         }
 
         async function closeClientQrLookupModal() {
@@ -274,69 +303,123 @@
                 } catch(e) {}
                 isClientScanning = false;
             }
+            clientQrCodeScanner = null;
+            document.getElementById('client-qr-reader').innerHTML = '';
             document.getElementById('clientQrLookupModal').style.display = 'none';
             document.getElementById('clientCameraPlaceholder').style.display = 'block';
         }
 
-        function initClientQrScanner() {
-            if (!clientQrCodeScanner) {
-                let formats = undefined;
-                if (window.Html5QrcodeSupportedFormats) {
-                    formats = [
-                        Html5QrcodeSupportedFormats.QR_CODE,
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.CODE_39,
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.UPC_A
-                    ];
-                }
-                clientQrCodeScanner = new Html5Qrcode("client-qr-reader", {
-                    formatsToSupport: formats,
-                    verbose: false
-                });
+        function populateClientCameraDropdown(cameras) {
+            const select = document.getElementById('clientCameraSelect');
+            if (!select) return;
+            select.innerHTML = '';
+            cameras.forEach((cam, idx) => {
+                const opt = document.createElement('option');
+                opt.value = cam.id;
+                opt.textContent = cam.label || ('Camera ' + (idx + 1));
+                if (selectedClientCameraId === cam.id) opt.selected = true;
+                select.appendChild(opt);
+            });
+            if (cameras.length > 1) {
+                select.style.display = 'inline-block';
             }
         }
 
+        async function onClientCameraSelectChange() {
+            const select = document.getElementById('clientCameraSelect');
+            selectedClientCameraId = select.value;
+            await startClientScanner();
+        }
+
         async function startClientScanner() {
-            initClientQrScanner();
+            if (clientQrCodeScanner && isClientScanning) {
+                try { await clientQrCodeScanner.stop(); } catch(e) {}
+                isClientScanning = false;
+            }
+            clientQrCodeScanner = null;
+            document.getElementById('client-qr-reader').innerHTML = '';
+
             const placeholder = document.getElementById('clientCameraPlaceholder');
-            placeholder.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size: 2.2rem; margin-bottom: 10px; display: block; color: #38bdf8;"></i><p>Đang mở camera...</p>';
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; margin-bottom: 12px; display: block; color: #38bdf8;"></i><p style="font-weight: 600; color: #e2e8f0;">Đang kết nối camera...</p>';
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                placeholder.innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2.8rem; margin-bottom: 10px; display: block; color: #f59e0b;"></i>
+                    <p style="margin-bottom: 8px; color: #f87171; font-weight: 500;">Trình duyệt yêu cầu kết nối bảo mật HTTPS để mở camera!</p>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('clientQrFileInput').click()"><i class="fas fa-upload"></i> Quét từ ảnh</button>
+                `;
+                showClientScanAlert('Vui lòng kiểm tra quyền truy cập Camera hoặc sử dụng chức năng <strong>Quét từ ảnh</strong>!', 'error');
+                return;
+            }
 
             const scanConfig = {
                 fps: 15,
                 qrbox: function(w, h) {
-                    return { width: Math.floor(Math.min(w * 0.85, 300)), height: Math.floor(Math.min(h * 0.65, 200)) };
+                    return { width: Math.floor(Math.min(w * 0.85, 320)), height: Math.floor(Math.min(h * 0.65, 220)) };
                 },
                 aspectRatio: 1.333334
             };
 
+            let cameraIdToUse = selectedClientCameraId;
             try {
-                let started = false;
-                try {
-                    await clientQrCodeScanner.start({ facingMode: "environment" }, scanConfig, onClientScanSuccess, () => {});
-                    started = true;
-                } catch(e1) {
-                    await clientQrCodeScanner.start({ facingMode: "user" }, scanConfig, onClientScanSuccess, () => {});
-                    started = true;
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    populateClientCameraDropdown(cameras);
+                    if (!cameraIdToUse) {
+                        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                        if (isMobile) {
+                            const backCam = cameras.find(c => /back|rear|environment|sau/i.test(c.label));
+                            cameraIdToUse = backCam ? backCam.id : cameras[cameras.length - 1].id;
+                        } else {
+                            cameraIdToUse = cameras[0].id;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn('Lỗi lấy danh sách camera:', e);
+            }
+
+            try {
+                clientQrCodeScanner = new Html5Qrcode("client-qr-reader", { verbose: false });
+
+                if (cameraIdToUse) {
+                    await clientQrCodeScanner.start(cameraIdToUse, scanConfig, onClientScanSuccess, () => {});
+                } else {
+                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    const preferredFacing = isMobile ? "environment" : "user";
+                    try {
+                        await clientQrCodeScanner.start({ facingMode: preferredFacing }, scanConfig, onClientScanSuccess, () => {});
+                    } catch(e1) {
+                        document.getElementById('client-qr-reader').innerHTML = '';
+                        clientQrCodeScanner = new Html5Qrcode("client-qr-reader", { verbose: false });
+                        const fallbackFacing = isMobile ? "user" : "environment";
+                        await clientQrCodeScanner.start({ facingMode: fallbackFacing }, scanConfig, onClientScanSuccess, () => {});
+                    }
                 }
 
-                if (started) {
-                    isClientScanning = true;
-                    placeholder.style.display = 'none';
-                }
+                isClientScanning = true;
+                placeholder.style.display = 'none';
+                document.getElementById('clientScanAlert').style.display = 'none';
             } catch(err) {
                 console.error('Lỗi camera client:', err);
                 placeholder.style.display = 'block';
                 placeholder.innerHTML = `
-                    <i class="fas fa-video-slash" style="font-size: 2.5rem; margin-bottom: 10px; display: block; color: #ef4444;"></i>
+                    <i class="fas fa-video-slash" style="font-size: 2.8rem; margin-bottom: 10px; display: block; color: #ef4444;"></i>
                     <p style="margin-bottom: 8px; color: #f87171; font-weight: 500;">Không thể mở camera</p>
-                    <div style="display: flex; gap: 6px; justify-content: center;">
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                         <button type="button" class="btn btn-sm btn-primary" onclick="startClientScanner()"><i class="fas fa-redo"></i> Thử lại</button>
-                        <button type="button" class="btn btn-sm btn-outline" style="background: rgba(255,255,255,0.15); color: #fff; border-color: #64748b;" onclick="document.getElementById('clientQrFileInput').click()"><i class="fas fa-upload"></i> Chọn ảnh</button>
+                        <button type="button" class="btn btn-sm btn-outline" style="background: rgba(255,255,255,0.15); color: #fff; border-color: #64748b;" onclick="document.getElementById('clientQrFileInput').click()"><i class="fas fa-upload"></i> Chọn file ảnh</button>
                     </div>
                 `;
-                showClientScanAlert('Vui lòng cấp quyền truy cập Camera trên trình duyệt hoặc chọn Quét từ ảnh!', 'error');
+                const errStr = (err && err.message) ? err.message.toLowerCase() : '';
+                if (errStr.includes('notallowed') || errStr.includes('permission')) {
+                    showClientScanAlert('Trình duyệt đang chặn quyền Camera! Vui lòng bấm vào <strong>biểu tượng ổ khóa / camera</strong> trên thanh địa chỉ, chọn <strong>Cho phép (Allow)</strong> rồi thử lại.', 'error');
+                } else if (errStr.includes('notreadable') || errStr.includes('in use')) {
+                    showClientScanAlert('Camera đang bị ứng dụng khác (Zoom, Teams, Zalo...) chiếm giữ! Vui lòng tắt ứng dụng kia hoặc chọn Quét từ ảnh.', 'error');
+                } else {
+                    showClientScanAlert('Không thể kết nối camera thiết bị. Bạn có thể sử dụng chức năng <strong>Quét từ ảnh</strong> hoặc <strong>Nhập mã</strong> bên dưới.', 'error');
+                }
             }
         }
 

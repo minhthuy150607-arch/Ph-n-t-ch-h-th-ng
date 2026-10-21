@@ -416,15 +416,30 @@
     // Bật Camera Scanner
     async function startScanner() {
         clearAlert();
-        initHtml5QrCodeInstance();
+        if (html5QrCode && isScanning) {
+            try { await html5QrCode.stop(); } catch(e) {}
+            isScanning = false;
+        }
+        html5QrCode = null;
+        document.getElementById('qr-reader').innerHTML = '';
 
         const placeholder = document.getElementById('cameraPlaceholder');
-        placeholder.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; margin-bottom: 12px; display: block; color: #38bdf8;"></i><p>Đang kết nối camera...</p>';
+        placeholder.style.display = 'block';
+        placeholder.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; margin-bottom: 12px; display: block; color: #38bdf8;"></i><p style="font-weight: 600; color: #e2e8f0;">Đang kết nối camera...</p>';
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            placeholder.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 12px; display: block; color: #f59e0b;"></i>
+                <p style="margin-bottom: 10px; color: #f87171; font-weight: 500;">Trình duyệt yêu cầu kết nối HTTPS bảo mật để sử dụng Camera!</p>
+                <button type="button" class="btn btn-sm btn-primary" onclick="triggerFileInput()"><i class="fas fa-upload"></i> Chọn file ảnh</button>
+            `;
+            showAlert('Vui lòng truy cập qua HTTPS hoặc chọn Quét từ file ảnh!', 'error');
+            return;
+        }
 
         const scanConfig = {
             fps: 15,
             qrbox: function(viewfinderWidth, viewfinderHeight) {
-                // Khung quét hình chữ nhật ngang tương thích cả QR và Barcode dài
                 const w = Math.floor(Math.min(viewfinderWidth * 0.85, 320));
                 const h = Math.floor(Math.min(viewfinderHeight * 0.65, 220));
                 return { width: w, height: h };
@@ -432,35 +447,51 @@
             aspectRatio: 1.333334
         };
 
+        // Tìm camera khả dụng
+        let cameraIdToUse = selectedCameraId;
         try {
-            // Thứ tự ưu tiên: 1. Camera ID đã chọn, 2. Camera sau (environment), 3. Camera trước (user)
-            let started = false;
+            const cameras = await Html5Qrcode.getCameras();
+            if (cameras && cameras.length > 0) {
+                availableCameras = cameras;
+                loadCameraDropdown();
+                if (!cameraIdToUse) {
+                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        const backCam = cameras.find(c => /back|rear|environment|sau/i.test(c.label));
+                        cameraIdToUse = backCam ? backCam.id : cameras[cameras.length - 1].id;
+                    } else {
+                        cameraIdToUse = cameras[0].id;
+                    }
+                }
+            }
+        } catch(e) {
+            console.warn('Lỗi kiểm tra cameras:', e);
+        }
 
-            if (selectedCameraId) {
-                await html5QrCode.start(selectedCameraId, scanConfig, onScanSuccess, onScanFailure);
-                started = true;
+        try {
+            html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+
+            if (cameraIdToUse) {
+                await html5QrCode.start(cameraIdToUse, scanConfig, onScanSuccess, onScanFailure);
             } else {
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const preferredFacing = isMobile ? "environment" : "user";
                 try {
-                    await html5QrCode.start({ facingMode: "environment" }, scanConfig, onScanSuccess, onScanFailure);
-                    started = true;
-                } catch (envErr) {
-                    console.log('Không mở được camera sau, chuyển sang camera mặc định / trước:', envErr);
-                    await html5QrCode.start({ facingMode: "user" }, scanConfig, onScanSuccess, onScanFailure);
-                    started = true;
+                    await html5QrCode.start({ facingMode: preferredFacing }, scanConfig, onScanSuccess, onScanFailure);
+                } catch(e1) {
+                    document.getElementById('qr-reader').innerHTML = '';
+                    html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+                    const fallbackFacing = isMobile ? "user" : "environment";
+                    await html5QrCode.start({ facingMode: fallbackFacing }, scanConfig, onScanSuccess, onScanFailure);
                 }
             }
 
-            if (started) {
-                isScanning = true;
-                placeholder.style.display = 'none';
-                document.getElementById('scanGuide').style.display = 'flex';
-                document.getElementById('textCameraState').textContent = 'Tắt Camera';
-                document.getElementById('iconCameraState').className = 'fas fa-stop';
-                document.getElementById('btnToggleCamera').className = 'btn btn-sm btn-outline';
-
-                // Sau khi đã cấp quyền thành công, tải danh sách camera vào dropdown
-                loadCameraDropdown();
-            }
+            isScanning = true;
+            placeholder.style.display = 'none';
+            document.getElementById('scanGuide').style.display = 'flex';
+            document.getElementById('textCameraState').textContent = 'Tắt Camera';
+            document.getElementById('iconCameraState').className = 'fas fa-stop';
+            document.getElementById('btnToggleCamera').className = 'btn btn-sm btn-outline';
         } catch (err) {
             console.error('Lỗi khởi động camera:', err);
             handleCameraError(err);
@@ -791,6 +822,13 @@
 
         tbody.insertBefore(tr, tbody.firstChild);
     }
+
+    // Tự động bật camera khi tải xong trang
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            startScanner();
+        }, 300);
+    });
 
     // Tự động giải phóng camera khi rời trang
     window.addEventListener('beforeunload', () => {

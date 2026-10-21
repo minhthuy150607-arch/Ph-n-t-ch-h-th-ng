@@ -253,45 +253,80 @@
     async function openBorrowScannerModal() {
         document.getElementById('borrowQrModal').style.display = 'block';
         document.getElementById('borrowScanAlert').style.display = 'none';
-        document.getElementById('borrowCameraLoading').style.display = 'block';
+        const loadingEl = document.getElementById('borrowCameraLoading');
+        loadingEl.style.display = 'block';
+        loadingEl.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size: 2.2rem; color: #38bdf8; margin-bottom: 8px; display: block;"></i><span style="font-size: 0.9rem; font-weight: 600; color: #fff;">Đang kết nối camera...</span>';
 
-        initBorrowScanner();
+        if (borrowHtml5QrCode && isBorrowScanning) {
+            try { await borrowHtml5QrCode.stop(); } catch(e) {}
+            isBorrowScanning = false;
+        }
+        borrowHtml5QrCode = null;
+        document.getElementById('borrow-qr-reader').innerHTML = '';
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            loadingEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #f59e0b; margin-bottom: 6px; display: block;"></i><span style="color: #f87171;">Trình duyệt yêu cầu kết nối HTTPS để mở camera!</span>';
+            showModalAlert('Trình duyệt yêu cầu HTTPS để mở camera. Vui lòng chọn Quét từ ảnh!', 'error');
+            return;
+        }
 
         const scanConfig = {
             fps: 15,
             qrbox: function(w, h) {
-                return { width: Math.floor(Math.min(w * 0.85, 300)), height: Math.floor(Math.min(h * 0.65, 200)) };
+                return { width: Math.floor(Math.min(w * 0.85, 320)), height: Math.floor(Math.min(h * 0.65, 220)) };
             },
             aspectRatio: 1.333334
         };
 
+        let cameraIdToUse = null;
         try {
-            let started = false;
-            try {
-                await borrowHtml5QrCode.start({ facingMode: "environment" }, scanConfig, onBorrowQrSuccess, () => {});
-                started = true;
-            } catch (e1) {
-                await borrowHtml5QrCode.start({ facingMode: "user" }, scanConfig, onBorrowQrSuccess, () => {});
-                started = true;
-            }
-
-            if (started) {
-                isBorrowScanning = true;
-                document.getElementById('borrowCameraLoading').style.display = 'none';
-
-                if (Html5Qrcode && Html5Qrcode.getCameras) {
-                    Html5Qrcode.getCameras().then(cams => {
-                        if (cams && cams.length > 1) {
-                            borrowCameras = cams;
-                            document.getElementById('btnSwitchCameraModal').style.display = 'inline-block';
-                        }
-                    }).catch(() => {});
+            const cams = await Html5Qrcode.getCameras();
+            if (cams && cams.length > 0) {
+                borrowCameras = cams;
+                if (cams.length > 1) {
+                    document.getElementById('btnSwitchCameraModal').style.display = 'inline-block';
+                }
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isMobile) {
+                    const backCam = cams.find(c => /back|rear|environment|sau/i.test(c.label));
+                    cameraIdToUse = backCam ? backCam.id : cams[cams.length - 1].id;
+                } else {
+                    cameraIdToUse = cams[0].id;
                 }
             }
+        } catch(e) {
+            console.warn('Lỗi getCameras:', e);
+        }
+
+        try {
+            borrowHtml5QrCode = new Html5Qrcode("borrow-qr-reader", { verbose: false });
+
+            if (cameraIdToUse) {
+                await borrowHtml5QrCode.start(cameraIdToUse, scanConfig, onBorrowQrSuccess, () => {});
+            } else {
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const preferredFacing = isMobile ? "environment" : "user";
+                try {
+                    await borrowHtml5QrCode.start({ facingMode: preferredFacing }, scanConfig, onBorrowQrSuccess, () => {});
+                } catch (e1) {
+                    document.getElementById('borrow-qr-reader').innerHTML = '';
+                    borrowHtml5QrCode = new Html5Qrcode("borrow-qr-reader", { verbose: false });
+                    const fallbackFacing = isMobile ? "user" : "environment";
+                    await borrowHtml5QrCode.start({ facingMode: fallbackFacing }, scanConfig, onBorrowQrSuccess, () => {});
+                }
+            }
+
+            isBorrowScanning = true;
+            loadingEl.style.display = 'none';
         } catch (err) {
             console.error('Lỗi khởi động camera:', err);
-            document.getElementById('borrowCameraLoading').style.display = 'none';
-            showModalAlert('Không thể kết nối camera! Vui lòng cấp quyền truy cập trình duyệt hoặc dùng Quét từ ảnh.', 'error');
+            loadingEl.innerHTML = '<i class="fas fa-video-slash" style="font-size: 2rem; color: #ef4444; margin-bottom: 6px; display: block;"></i><span style="color: #f87171;">Không thể mở camera</span>';
+            const errStr = (err && err.message) ? err.message.toLowerCase() : '';
+            if (errStr.includes('permission') || errStr.includes('notallowed')) {
+                showModalAlert('Trình duyệt đang chặn quyền Camera! Vui lòng bấm vào biểu tượng ổ khóa/camera trên thanh địa chỉ và chọn Cho phép.', 'error');
+            } else {
+                showModalAlert('Không thể kết nối camera thiết bị! Vui lòng kiểm tra quyền hoặc chọn Quét từ ảnh.', 'error');
+            }
         }
     }
 
