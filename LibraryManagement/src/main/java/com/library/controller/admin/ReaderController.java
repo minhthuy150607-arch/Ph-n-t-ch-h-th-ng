@@ -63,9 +63,13 @@ public class ReaderController {
                                @ModelAttribute User reader,
                                @RequestParam(value = "rawPassword", required = false) String rawPassword,
                                RedirectAttributes redirectAttributes) {
-        reader.setId(id);
-        userService.saveReader(reader, rawPassword);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+        try {
+            reader.setId(id);
+            userService.saveReader(reader, rawPassword);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
         return "redirect:/admin/readers";
     }
 

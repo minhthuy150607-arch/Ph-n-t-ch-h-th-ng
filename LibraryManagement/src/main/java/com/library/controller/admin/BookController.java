@@ -77,10 +77,14 @@ public class BookController {
                              @ModelAttribute Book book,
                              @RequestParam(value = "coverFile", required = false) org.springframework.web.multipart.MultipartFile coverFile,
                              RedirectAttributes redirectAttributes) {
-        book.setId(id);
-        bookService.saveBookWithCover(book, coverFile);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin sách thành công!");
-        return "redirect:/admin/books/" + id;
+        try {
+            bookService.updateBook(id, book, coverFile);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin sách thành công!");
+            return "redirect:/admin/books/" + id;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            return "redirect:/admin/books/edit/" + id;
+        }
     }
 
     @GetMapping("/{id}")

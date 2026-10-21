@@ -8,89 +8,198 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="page-header">
+    <!-- Breadcrumb & Header -->
+    <div class="page-header" style="margin-bottom: 24px;">
         <div class="page-header-left">
-            <h1 class="page-title" th:text="${book.id != null} ? 'Chỉnh sửa Sách' : 'Thêm Sách Mới'">Thêm Sách Mới</h1>
-            <p class="page-subtitle">Nhập thông tin chi tiết đầu sách</p>
+            <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <a th:href="@{/admin/books}" style="color: #6366f1; text-decoration: none;">Danh mục sách</a>
+                <span>/</span>
+                <span th:text="${book.id != null} ? 'Chỉnh sửa đầu sách' : 'Thêm mới'"></span>
+            </div>
+            <h1 class="page-title" style="margin: 0; font-size: 1.65rem; font-weight: 800; color: var(--text-primary, #0f172a); display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-book text-primary" style="color: #6366f1;"></i>
+                <span th:text="${book.id != null} ? 'Chỉnh sửa Sách' : 'Thêm Sách Mới'">Thêm Sách Mới</span>
+            </h1>
+            <p class="page-subtitle" style="margin-top: 4px; color: #64748b; font-size: 0.9rem;">
+                Nhập và cập nhật thông tin chi tiết đầu sách trong hệ thống thư viện
+            </p>
         </div>
         <div class="page-header-right">
-            <a th:href="@{/admin/books}" class="btn btn-outline">
-                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            <a th:href="${book.id != null} ? @{/admin/books/{id}(id=${book.id})} : @{/admin/books}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-left"></i> Quay lại
             </a>
         </div>
     </div>
 
-    <div class="dashboard-card" style="max-width: 800px; margin: 0 auto; padding: 24px;">
-        <form th:action="${book.id != null} ? @{/admin/books/edit/{id}(id=${book.id})} : @{/admin/books/new}"
+    <!-- Thông báo lỗi hoặc thành công nếu có -->
+    <div th:if="${errorMessage}" class="alert alert-danger" style="max-width: 860px; margin: 0 auto 20px auto; padding: 14px 18px; border-radius: 10px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-exclamation-circle" style="font-size: 1.2rem;"></i>
+        <span th:text="${errorMessage}"></span>
+    </div>
+    <div th:if="${successMessage}" class="alert alert-success" style="max-width: 860px; margin: 0 auto 20px auto; padding: 14px 18px; border-radius: 10px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- Form chính -->
+    <div class="dashboard-card" style="max-width: 860px; margin: 0 auto; padding: 28px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid rgba(226, 232, 240, 0.8);">
+        <form id="bookForm" th:action="${book.id != null} ? @{/admin/books/edit/{id}(id=${book.id})} : @{/admin/books/new}"
               th:object="${book}" method="post" enctype="multipart/form-data">
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Tên sách -->
                 <div style="grid-column: span 2;">
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Tên sách <span style="color: red;">*</span></label>
-                    <input type="text" th:field="*{title}" required class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: Lập trình Java căn bản">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">
+                        Tên sách <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" th:field="*{title}" required class="form-control"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;"
+                           placeholder="Ví dụ: Clean Code: A Handbook of Agile Software Craftsmanship">
                 </div>
 
+                <!-- Mã sách -->
                 <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Mã sách (Tự sinh nếu để trống)</label>
-                    <input type="text" th:field="*{bookCode}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: BK-001">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">
+                        Mã sách <small style="font-weight: 400; color: #64748b;">(Tự sinh nếu để trống)</small>
+                    </label>
+                    <input type="text" th:field="*{bookCode}" class="form-control"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 0.95rem;"
+                           placeholder="Ví dụ: BK-001">
                 </div>
 
+                <!-- Tác giả -->
                 <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Tác giả <span style="color: red;">*</span></label>
-                    <input type="text" th:field="*{author}" required class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: Robert C. Martin">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">
+                        Tác giả <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" th:field="*{author}" required class="form-control"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;"
+                           placeholder="Ví dụ: Robert C. Martin">
                 </div>
 
+                <!-- Thể loại -->
                 <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Thể loại</label>
-                    <input type="text" th:field="*{category}" list="categoriesList" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Chọn hoặc nhập thể loại mới">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">Thể loại</label>
+                    <input type="text" th:field="*{category}" list="categoriesList" class="form-control"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;"
+                           placeholder="Chọn hoặc nhập thể loại mới">
                     <datalist id="categoriesList">
                         <option th:each="cat : ${categories}" th:value="${cat}"></option>
                     </datalist>
                 </div>
 
+                <!-- Nhà xuất bản -->
                 <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Nhà xuất bản</label>
-                    <input type="text" th:field="*{publisher}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: NXB Trẻ">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">Nhà xuất bản</label>
+                    <input type="text" th:field="*{publisher}" class="form-control"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;"
+                           placeholder="Ví dụ: Prentice Hall">
                 </div>
 
+                <!-- Năm xuất bản -->
                 <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Năm xuất bản</label>
-                    <input type="number" th:field="*{publishYear}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="2024">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">Năm xuất bản</label>
+                    <input type="number" th:field="*{publishYear}" class="form-control"
+                           style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;"
+                           placeholder="2024" min="1800" max="2100">
                 </div>
 
+                <!-- Trạng thái -->
                 <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Trạng thái</label>
-                    <select th:field="*{status}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">Trạng thái</label>
+                    <select th:field="*{status}" class="form-control"
+                            style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;">
                         <option value="ACTIVE">Kích hoạt (Cho phép mượn)</option>
                         <option value="INACTIVE">Tạm ngưng</option>
                     </select>
                 </div>
 
-                <div style="grid-column: span 2;">
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Tải ảnh bìa từ máy tính</label>
-                    <input type="file" name="coverFile" accept="image/*" class="form-control" style="width: 100%; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: white;">
-                    <small style="color: #64748b; display: block; margin-top: 4px;">Chọn file ảnh (JPG, PNG, SVG) từ máy tính của bạn.</small>
+                <!-- KHU VỰC ẢNH BÌA (Preview + Upload + URL) -->
+                <div style="grid-column: span 2; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; background: rgba(248, 250, 252, 0.6);">
+                    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                        <!-- Box Preview Bìa -->
+                        <div style="text-align: center; width: 110px; flex-shrink: 0;">
+                            <div style="width: 110px; height: 150px; border-radius: 10px; overflow: hidden; background: #e2e8f0; box-shadow: 0 6px 12px -2px rgba(0,0,0,0.15); border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center;">
+                                <img id="bookCoverPreview"
+                                     th:src="${book.coverImage != null and !book.coverImage.isEmpty()} ? ${book.coverImage} : '/images/cover-default.svg'"
+                                     onerror="this.src='/images/cover-default.svg'"
+                                     alt="Ảnh bìa xem trước"
+                                     style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                            </div>
+                            <span style="display: block; font-size: 0.75rem; color: #64748b; margin-top: 6px;">Ảnh bìa xem trước</span>
+                        </div>
+
+                        <!-- Lựa chọn Upload hoặc Link URL -->
+                        <div style="flex: 1; min-width: 260px;">
+                            <div style="margin-bottom: 14px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">
+                                    <i class="fas fa-upload text-primary" style="margin-right: 4px;"></i> Tải ảnh bìa mới từ máy tính
+                                </label>
+                                <input type="file" id="coverFileInput" name="coverFile" accept="image/*" class="form-control"
+                                       style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: white;"
+                                       onchange="handleCoverFileSelected(event)">
+                                <small style="color: #64748b; display: block; margin-top: 4px;">Định dạng hỗ trợ: JPG, PNG, WEBP, SVG (tối đa 5MB).</small>
+                            </div>
+
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">
+                                    <i class="fas fa-link text-primary" style="margin-right: 4px;"></i> Hoặc nhập Link ảnh bìa (URL)
+                                </label>
+                                <input type="text" id="coverImageInput" th:field="*{coverImage}" class="form-control"
+                                       style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;"
+                                       placeholder="Ví dụ: /images/cover-clean-code.svg hoặc https://..."
+                                       oninput="handleCoverUrlChanged(event)">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Mô tả tóm tắt -->
                 <div style="grid-column: span 2;">
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Hoặc nhập Link ảnh bìa (URL)</label>
-                    <input type="text" th:field="*{coverImage}" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Ví dụ: /images/cover-clean-code.svg hoặc https://...">
-                </div>
-
-                <div style="grid-column: span 2;">
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500;">Mô tả tóm tắt</label>
-                    <textarea th:field="*{description}" rows="4" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Tóm tắt nội dung sách..."></textarea>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.95rem;">Mô tả tóm tắt</label>
+                    <textarea th:field="*{description}" rows="4" class="form-control"
+                              style="width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; line-height: 1.5;"
+                              placeholder="Tóm tắt nội dung sách, giới thiệu chung..."></textarea>
                 </div>
             </div>
 
-            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-                <a th:href="@{/admin/books}" class="btn btn-outline">Hủy bỏ</a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Lưu thông tin
+            <!-- Nút hành động -->
+            <div style="margin-top: 28px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                <a th:href="${book.id != null} ? @{/admin/books/{id}(id=${book.id})} : @{/admin/books}" class="btn btn-outline" style="padding: 10px 20px;">
+                    Hủy bỏ
+                </a>
+                <button type="submit" id="submitBtn" class="btn btn-primary" style="padding: 10px 24px; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-save"></i> <span>Lưu thông tin</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    function handleCoverFileSelected(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('bookCoverPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function handleCoverUrlChanged(event) {
+        const url = event.target.value.trim();
+        if (url) {
+            document.getElementById('bookCoverPreview').src = url;
+        }
+    }
+
+    document.getElementById('bookForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Đang lưu...</span>';
+    });
+</script>
 </body>
 </html>

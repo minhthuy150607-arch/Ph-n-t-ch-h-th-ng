@@ -49,23 +49,74 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    private String saveCoverFile(org.springframework.web.multipart.MultipartFile coverFile) {
+        if (coverFile == null || coverFile.isEmpty()) {
+            return null;
+        }
+        try {
+            String dataDir = System.getenv("DATA_DIR");
+            java.nio.file.Path uploadDir = (dataDir != null && !dataDir.isBlank())
+                    ? java.nio.file.Paths.get(dataDir, "uploads", "books")
+                    : java.nio.file.Paths.get("./uploads/books");
+            if (!java.nio.file.Files.exists(uploadDir)) {
+                java.nio.file.Files.createDirectories(uploadDir);
+            }
+            String cleanName = coverFile.getOriginalFilename() != null ? coverFile.getOriginalFilename().replaceAll("\\s+", "_") : "cover.jpg";
+            String filename = System.currentTimeMillis() + "_" + cleanName;
+            java.nio.file.Path targetPath = uploadDir.resolve(filename);
+            java.nio.file.Files.copy(coverFile.getInputStream(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return "/uploads/books/" + filename;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Transactional
     public Book saveBookWithCover(Book book, org.springframework.web.multipart.MultipartFile coverFile) {
-        if (coverFile != null && !coverFile.isEmpty()) {
-            try {
-                java.nio.file.Path uploadDir = java.nio.file.Paths.get("./uploads/books");
-                if (!java.nio.file.Files.exists(uploadDir)) {
-                    java.nio.file.Files.createDirectories(uploadDir);
-                }
-                String filename = System.currentTimeMillis() + "_" + coverFile.getOriginalFilename().replaceAll("\\s+", "_");
-                java.nio.file.Path targetPath = uploadDir.resolve(filename);
-                java.nio.file.Files.copy(coverFile.getInputStream(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                book.setCoverImage("/uploads/books/" + filename);
-            } catch (Exception e) {
-                // Nếu lỗi upload thì giữ nguyên coverImage cũ
-            }
+        String uploadedCover = saveCoverFile(coverFile);
+        if (uploadedCover != null) {
+            book.setCoverImage(uploadedCover);
         }
         return saveBook(book);
+    }
+
+    @Transactional
+    public Book updateBook(Long id, Book updatedBook, org.springframework.web.multipart.MultipartFile coverFile) {
+        Book existing = bookRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sách với ID: " + id));
+
+        if (updatedBook.getBookCode() != null && !updatedBook.getBookCode().trim().isEmpty()) {
+            String newCode = updatedBook.getBookCode().trim();
+            bookRepository.findByBookCode(newCode).ifPresent(other -> {
+                if (!other.getId().equals(existing.getId())) {
+                    throw new IllegalArgumentException("Mã sách '" + newCode + "' đã tồn tại ở đầu sách khác!");
+                }
+            });
+            existing.setBookCode(newCode);
+        }
+
+        if (updatedBook.getTitle() != null && !updatedBook.getTitle().trim().isEmpty()) {
+            existing.setTitle(updatedBook.getTitle().trim());
+        }
+        if (updatedBook.getAuthor() != null && !updatedBook.getAuthor().trim().isEmpty()) {
+            existing.setAuthor(updatedBook.getAuthor().trim());
+        }
+        existing.setCategory(updatedBook.getCategory() != null ? updatedBook.getCategory().trim() : null);
+        existing.setPublisher(updatedBook.getPublisher() != null ? updatedBook.getPublisher().trim() : null);
+        existing.setPublishYear(updatedBook.getPublishYear());
+        if (updatedBook.getStatus() != null) {
+            existing.setStatus(updatedBook.getStatus());
+        }
+        existing.setDescription(updatedBook.getDescription());
+
+        String uploadedCover = saveCoverFile(coverFile);
+        if (uploadedCover != null) {
+            existing.setCoverImage(uploadedCover);
+        } else if (updatedBook.getCoverImage() != null && !updatedBook.getCoverImage().trim().isEmpty()) {
+            existing.setCoverImage(updatedBook.getCoverImage().trim());
+        }
+
+        return bookRepository.save(existing);
     }
 
     @Transactional

@@ -99,21 +99,45 @@ public class UserService {
 
     @Transactional
     public User saveAccount(User user, String rawPassword) {
-        if (user.getRole() == null) {
-            user.setRole("READER");
+        if (user.getId() != null) {
+            User existing = userRepository.findById(user.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + user.getId()));
+
+            if (user.getFullName() != null && !user.getFullName().trim().isEmpty()) {
+                existing.setFullName(user.getFullName().trim());
+            }
+            existing.setEmail(user.getEmail() != null && !user.getEmail().trim().isEmpty() ? user.getEmail().trim() : null);
+            existing.setPhone(user.getPhone() != null && !user.getPhone().trim().isEmpty() ? user.getPhone().trim() : null);
+            if (user.getReaderCode() != null && !user.getReaderCode().trim().isEmpty()) {
+                existing.setReaderCode(user.getReaderCode().trim());
+            }
+            if (user.getRole() != null) {
+                existing.setRole(user.getRole());
+            }
+            if (user.getStatus() != null) {
+                existing.setStatus(user.getStatus());
+            }
+            if (rawPassword != null && !rawPassword.trim().isEmpty()) {
+                existing.setPassword(passwordEncoder.encode(rawPassword.trim()));
+            }
+            return userRepository.save(existing);
+        } else {
+            if (user.getRole() == null) {
+                user.setRole("READER");
+            }
+            if (user.getStatus() == null) {
+                user.setStatus("ACTIVE");
+            }
+            if ("READER".equalsIgnoreCase(user.getRole()) && (user.getReaderCode() == null || user.getReaderCode().trim().isEmpty())) {
+                user.setReaderCode("BD-" + System.currentTimeMillis() % 100000);
+            }
+            if (rawPassword != null && !rawPassword.trim().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(rawPassword.trim()));
+            } else {
+                user.setPassword(passwordEncoder.encode("123456"));
+            }
+            return userRepository.save(user);
         }
-        if (user.getStatus() == null) {
-            user.setStatus("ACTIVE");
-        }
-        if ("READER".equalsIgnoreCase(user.getRole()) && (user.getReaderCode() == null || user.getReaderCode().trim().isEmpty())) {
-            user.setReaderCode("BD-" + System.currentTimeMillis() % 100000);
-        }
-        if (rawPassword != null && !rawPassword.trim().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(rawPassword));
-        } else if (user.getId() == null) {
-            user.setPassword(passwordEncoder.encode("123456"));
-        }
-        return userRepository.save(user);
     }
 
     @Transactional

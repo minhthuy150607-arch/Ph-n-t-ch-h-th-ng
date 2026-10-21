@@ -63,9 +63,13 @@ public class AccountAdminController {
                                 @ModelAttribute User account,
                                 @RequestParam(value = "rawPassword", required = false) String rawPassword,
                                 RedirectAttributes redirectAttributes) {
-        account.setId(id);
-        userService.saveAccount(account, rawPassword);
-        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật tài khoản thành công!");
+        try {
+            account.setId(id);
+            userService.saveAccount(account, rawPassword);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật tài khoản thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
         return "redirect:/admin/accounts";
     }
 
